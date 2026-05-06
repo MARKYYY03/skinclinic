@@ -1,4 +1,4 @@
-import { InventoryReportRow } from "@/lib/mock/reports"
+import { InventoryReportRow } from "@/types/reports"
 
 interface InventoryReportTableProps {
   rows: InventoryReportRow[]

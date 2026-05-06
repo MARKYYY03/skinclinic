@@ -1,85 +1,82 @@
-import { Client } from "@/types/client"
-import { formatDate } from "@/lib/utils"
+import Link from "next/link"
+
+import type { Client } from "@/types/client"
+import { ageFromIsoDate, formatDate } from "@/lib/utils"
 import CategoryBadge from "./CategoryBadge"
 
 interface ClientProfileCardProps {
   client: Client
+  clientId: string
+  showEditLink?: boolean
 }
 
-export default function ClientProfileCard({ client }: ClientProfileCardProps) {
+export default function ClientProfileCard({
+  client,
+  clientId,
+  showEditLink = false,
+}: ClientProfileCardProps) {
+  const age = ageFromIsoDate(client.birthdate)
+
+  const initials =
+    client.fullName
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w[0]?.toUpperCase())
+      .join("")
+      .slice(0, 2) || "C"
+
   return (
-    <div className="rounded-lg bg-white p-6 shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
-            <span className="text-xl font-semibold text-gray-600">
-              {client.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
-            </span>
+    <div className="rounded-xl border border-[#dfd8cf] bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#e3ddd3] text-lg font-semibold text-[#314031]">
+            {initials}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{client.fullName}</h1>
-            <div className="mt-1 flex items-center space-x-4">
+            <h1 className="text-2xl font-bold tracking-tight text-[#1f2918]">
+              {client.fullName}
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2 gap-y-2 text-sm">
               <CategoryBadge category={client.category} />
-              <span className="text-sm text-gray-500">{client.gender}</span>
-              <span className="text-sm text-gray-500">
+              <span className="text-[#6a6358]">{client.gender}</span>
+              <span className="text-[#6a6358]">
                 Born {formatDate(client.birthdate)}
+                {age !== null ? ` (${age} yrs)` : ""}
+              </span>
+              <span className="text-[#6a6358]">
+                Member since {formatDate(client.createdAt)}
               </span>
             </div>
           </div>
         </div>
-        <button className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-          Edit Profile
-        </button>
+        {showEditLink ? (
+          <Link
+            href={`/clients/${clientId}/edit`}
+            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#6B7A3E] px-4 py-2 text-sm font-semibold text-[#F5F0E8] hover:bg-[#5a6734]"
+          >
+            Edit profile
+          </Link>
+        ) : null}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-            Contact Information
+      <div className="mt-6 grid grid-cols-1 gap-4 border-t border-[#e5ded4] pt-6 sm:grid-cols-2">
+        <div className="space-y-2 text-sm">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-[#6a6358]">
+            Contact
           </h3>
-          <div className="mt-2 space-y-2">
-            <p className="text-sm text-gray-900">
-              <span className="font-medium">Phone:</span> {client.contactNumber}
-            </p>
-            <p className="text-sm text-gray-900">
-              <span className="font-medium">Email:</span> {client.email}
-            </p>
-            <p className="text-sm text-gray-900">
-              <span className="font-medium">Address:</span> {client.address || "Not provided"}
-            </p>
-          </div>
+          <p className="text-[#1f2918]">
+            <span className="font-medium text-[#314031]">Phone</span>:{" "}
+            {client.contactNumber || "—"}
+          </p>
+          <p className="text-[#1f2918]">
+            <span className="font-medium text-[#314031]">Email</span>:{" "}
+            {client.email && client.email !== "—" ? client.email : "—"}
+          </p>
+          <p className="text-[#1f2918]">
+            <span className="font-medium text-[#314031]">Address</span>:{" "}
+            {client.address?.trim() || "—"}
+          </p>
         </div>
-
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-            Medical Information
-          </h3>
-          <div className="mt-2 space-y-2">
-            <p className="text-sm text-gray-900">
-              <span className="font-medium">Medical History:</span>{" "}
-              {client.medicalHistory || "None recorded"}
-            </p>
-            <p className="text-sm text-gray-900">
-              <span className="font-medium">Allergies:</span>{" "}
-              {client.allergies || "None recorded"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {client.notes && (
-        <div className="mt-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-            Notes
-          </h3>
-          <p className="mt-2 text-sm text-gray-900">{client.notes}</p>
-        </div>
-      )}
-
-      <div className="mt-6 border-t border-gray-200 pt-4">
-        <p className="text-xs text-gray-500">
-          Client since {formatDate(client.createdAt)}
-        </p>
       </div>
     </div>
   )

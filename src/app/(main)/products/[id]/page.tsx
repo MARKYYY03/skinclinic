@@ -1,18 +1,52 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import PageWrapper from "@/components/layout/PageWrapper"
-import { mockProducts } from "@/lib/mock/catalog"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import type { Product } from "@/types/product"
 
 export default function EditProductPage() {
   const params = useParams()
   const router = useRouter()
-  const product = useMemo(
-    () => mockProducts.find((item) => item.id === params.id) ?? mockProducts[0],
-    [params.id],
-  )
+  const [product, setProduct] = useState<Product | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data } = await supabaseClient
+        .from("products")
+        .select("id, name, sku, selling_price, cost_price, stock_quantity, low_stock_threshold, expiration_date, supplier")
+        .eq("id", params.id as string)
+        .maybeSingle()
+      if (cancelled || !data) return
+      setProduct({
+        id: data.id,
+        name: data.name,
+        sku: data.sku ?? undefined,
+        sellingPrice: Number(data.selling_price ?? 0),
+        costPrice: Number(data.cost_price ?? 0),
+        stockQuantity: data.stock_quantity,
+        lowStockThreshold: data.low_stock_threshold,
+        expirationDate: data.expiration_date ?? undefined,
+        supplier: data.supplier ?? undefined,
+      })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [params.id])
+
+  if (!product) {
+    return (
+      <PageWrapper>
+        <div className="rounded-lg bg-white p-6 shadow">
+          <h2 className="text-xl font-semibold text-gray-900">Product not found</h2>
+        </div>
+      </PageWrapper>
+    )
+  }
 
   return (
     <PageWrapper>

@@ -2,9 +2,11 @@ export interface ServicePackage {
   id: string
   name: string
   serviceId: string
+  serviceName?: string
   sessionCount: number
   price: number
   validityDays: number
+  isActive?: boolean
 }
 
 export interface ClientPackage {

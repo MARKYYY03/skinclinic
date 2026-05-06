@@ -1,9 +1,42 @@
+"use client"
+
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import PageWrapper from "@/components/layout/PageWrapper"
-import { mockProducts } from "@/lib/mock/catalog"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { Product } from "@/types/product"
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data } = await supabaseClient
+        .from("products")
+        .select("id, name, sku, selling_price, cost_price, stock_quantity, low_stock_threshold, expiration_date, supplier")
+        .order("name")
+      if (cancelled) return
+      setProducts(
+        (data ?? []).map((row) => ({
+          id: row.id,
+          name: row.name,
+          sku: row.sku ?? undefined,
+          sellingPrice: Number(row.selling_price ?? 0),
+          costPrice: Number(row.cost_price ?? 0),
+          stockQuantity: row.stock_quantity,
+          lowStockThreshold: row.low_stock_threshold,
+          expirationDate: row.expiration_date ?? undefined,
+          supplier: row.supplier ?? undefined,
+        })),
+      )
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <PageWrapper>
       <div className="space-y-6">
@@ -47,7 +80,7 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {mockProducts.map((product) => (
+              {products.map((product) => (
                 <tr key={product.id}>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-700">

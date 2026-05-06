@@ -1,50 +1,48 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { NAVIGATION_ITEMS } from "@/lib/constants"
+
+import { navigationTitleForPath } from "@/lib/constants"
 
 interface HeaderProps {
+  userName?: string
   userRole?: string
   onToggleSidebar?: () => void
 }
 
 export default function Header({
+  userName = "User",
   userRole = "Staff",
   onToggleSidebar,
 }: HeaderProps) {
   const pathname = usePathname()
-
-  // Get current page title from navigation items
-  const currentItem = NAVIGATION_ITEMS.find(
-    (item) => pathname === item.href || pathname.startsWith(item.href + "/")
-  )
-
-  const pageTitle = currentItem?.name || "Dashboard"
+  const pageTitle = navigationTitleForPath(pathname) ?? "Relevare"
 
   return (
-    <header className="border-b border-[#d8ddd5] bg-[#f7f8f6] px-6 py-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
+    <header className="border-b border-[#cfd4b8] bg-[#6B7A3E] px-6 py-3 text-[#F5F0E8] shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center">
           <button
+            type="button"
             onClick={onToggleSidebar}
-            className="mr-4 rounded p-2 hover:bg-gray-100 md:hidden"
+            className="mr-4 rounded p-2 hover:bg-black/15 md:hidden"
+            aria-label="Open menu"
           >
             ☰
           </button>
-          <h1 className="text-[28px] font-semibold text-[#1f2b1f]">{pageTitle}</h1>
+          <h1 className="truncate text-xl font-semibold tracking-tight sm:text-[28px]">
+            {pageTitle}
+          </h1>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <p className="text-sm font-medium text-[#1f2b1f]">User Name</p>
-            <p className="text-xs text-[#7d8f7d]">{userRole}</p>
+        <div className="flex shrink-0 items-center gap-3">
+          <div className="hidden text-right sm:block">
+            <p className="text-sm font-medium">{userName}</p>
+            <p className="text-xs opacity-90">{userRole}</p>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#dfe6dc] text-[#314031]">
-            U
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/15 text-sm font-semibold">
+            {userName.trim().slice(0, 1).toUpperCase() || "U"}
           </div>
-          <button className="rounded border border-[#d8ddd5] bg-white px-3 py-1 text-sm text-[#4f614f] hover:bg-[#f1f3ef] hover:text-[#1f2b1f]">
-            Logout
-          </button>
         </div>
       </div>
     </header>

@@ -1,41 +1,34 @@
-"use client"
+import Link from "next/link"
+import { redirect } from "next/navigation"
 
-import { useState } from "react"
 import PageWrapper from "@/components/layout/PageWrapper"
-import ClientForm from "@/components/clients/ClientForm"
-import { Client } from "@/types/client"
+import NewClientFormClient from "@/components/clients/NewClientFormClient"
+import { getServerUserProfile } from "@/lib/auth/server-profile"
 
-export default function NewClientPage() {
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSubmit = async (data: Omit<Client, "id" | "createdAt">) => {
-    setIsLoading(true)
-    try {
-      // TODO: Replace with actual API call
-      console.log("Creating client:", data)
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // For now, just log the data
-      alert("Client created successfully! (This is a demo - data not actually saved)")
-    } catch (error) {
-      console.error("Error creating client:", error)
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
-  }
+export default async function NewClientPage() {
+  const me = await getServerUserProfile()
+  if (!me) redirect("/login")
+  if (me.role === "Staff") redirect("/clients")
 
   return (
     <PageWrapper>
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Add New Client</h2>
-          <p className="mt-1 text-gray-600">Create a new client profile</p>
+          <Link
+            href="/clients"
+            className="text-sm font-medium text-[#6B7A3E] hover:text-[#5a6734]"
+          >
+            ← Back to Clients
+          </Link>
+          <h2 className="mt-4 text-3xl font-bold text-[#1f2918]">
+            Add New Client
+          </h2>
+          <p className="mt-1 text-sm text-[#5c564c]">
+            Create a profile for a new client.
+          </p>
         </div>
 
-        <ClientForm onSubmit={handleSubmit} isLoading={isLoading} />
+        <NewClientFormClient />
       </div>
     </PageWrapper>
   )

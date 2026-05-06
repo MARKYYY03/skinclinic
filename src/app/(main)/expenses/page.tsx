@@ -1,27 +1,62 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import PageWrapper from "@/components/layout/PageWrapper"
 import ExpenseTable from "@/components/expenses/ExpenseTable"
 import { EXPENSE_CATEGORIES } from "@/lib/constants"
-import { mockExpenses } from "@/lib/mock/phase6"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
+import { Expense } from "@/types/expense"
 import { formatCurrency } from "@/lib/utils"
 
 export default function ExpensesPage() {
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [categoryFilter, setCategoryFilter] = useState("All")
   const [monthFilter, setMonthFilter] = useState("All")
 
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data: expenseRows } = await supabaseClient
+        .from("expenses")
+        .select("id, category, description, amount, expense_date, recorded_by")
+        .order("expense_date", { ascending: false })
+      const recorderIds = Array.from(
+        new Set((expenseRows ?? []).map((row) => row.recorded_by).filter(Boolean)),
+      )
+      const { data: profiles } = recorderIds.length
+        ? await supabaseClient.from("profiles").select("id, full_name").in("id", recorderIds as string[])
+        : { data: [] as Array<{ id: string; full_name: string }> }
+      const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]))
+
+      if (!cancelled) {
+        setExpenses(
+          (expenseRows ?? []).map((row) => ({
+            id: row.id,
+            category: row.category,
+            description: row.description,
+            amount: Number(row.amount ?? 0),
+            date: row.expense_date,
+            recordedBy: row.recorded_by ? nameById.get(row.recorded_by) ?? "Unknown" : "System",
+          })),
+        )
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const filteredExpenses = useMemo(
     () =>
-      mockExpenses.filter((expense) => {
+      expenses.filter((expense) => {
         const monthKey = expense.date.slice(0, 7)
         const matchCategory =
           categoryFilter === "All" || expense.category === categoryFilter
         const matchMonth = monthFilter === "All" || monthKey === monthFilter
         return matchCategory && matchMonth
       }),
-    [categoryFilter, monthFilter],
+    [categoryFilter, monthFilter, expenses],
   )
 
   const monthlyTotal = useMemo(

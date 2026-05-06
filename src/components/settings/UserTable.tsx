@@ -1,78 +1,110 @@
-import { User, UserRole } from "@/types/user"
+import type { User, UserRole } from "@/types/user"
+import { formatDate } from "@/lib/utils"
 
 interface UserTableProps {
   users: User[]
   currentUserRole: UserRole
-  onRoleChange: (userId: string, role: UserRole) => void
+  currentUserId: string
+  onEditClick?: (user: User) => void
 }
 
-const roleOptions: UserRole[] = ["Owner", "Admin", "Cashier", "Staff"]
+function roleBadgeClass(role: UserRole): string {
+  switch (role) {
+    case "Owner":
+      return "bg-purple-100 text-purple-900"
+    case "Admin":
+      return "bg-blue-100 text-blue-900"
+    case "Cashier":
+      return "bg-emerald-100 text-emerald-900"
+    case "Staff":
+    default:
+      return "bg-[#e8e3dc] text-[#314031]"
+  }
+}
 
 export default function UserTable({
   users,
   currentUserRole,
-  onRoleChange,
+  currentUserId,
+  onEditClick,
 }: UserTableProps) {
-  const canManageUsers = currentUserRole === "Owner" || currentUserRole === "Admin"
+  const ownerCanEdit = currentUserRole === "Owner" && Boolean(onEditClick)
 
   return (
-    <div className="overflow-hidden rounded-lg bg-white shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
+      <table className="min-w-full divide-y divide-[#e5ded4]">
+        <thead className="bg-[#F5F0E8]/80">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Name
+            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+              Full name
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
               Email
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
               Role
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
               Status
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+              Created at
+            </th>
+            <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+              Actions
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 bg-white">
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.name}</td>
-              <td className="px-4 py-3 text-sm text-gray-700">{user.email}</td>
-              <td className="px-4 py-3 text-sm text-gray-700">
-                {canManageUsers ? (
-                  <select
-                    value={user.role}
-                    onChange={(event) =>
-                      onRoleChange(user.id, event.target.value as UserRole)
-                    }
-                    className="rounded border border-gray-300 px-2 py-1 text-sm"
-                    aria-label={`Role selector for ${user.name}`}
-                    title="User role selector"
+        <tbody className="divide-y divide-[#e5ded4] bg-white">
+          {users.map((user) => {
+            const isSelf = user.id === currentUserId
+            const showEdit = ownerCanEdit && !isSelf
+
+            return (
+              <tr key={user.id} className="hover:bg-[#F5F0E8]/40">
+                <td className="px-4 py-3 text-sm font-medium text-[#1f2918]">
+                  {user.name}
+                </td>
+                <td className="px-4 py-3 text-sm text-[#314031]">
+                  {user.email ?? "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${roleBadgeClass(user.role)}`}
                   >
-                    {roleOptions.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  user.role
-                )}
-              </td>
-              <td className="px-4 py-3 text-sm">
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${
-                    user.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {user.isActive ? "Active" : "Inactive"}
-                </span>
-              </td>
-            </tr>
-          ))}
+                    {user.role}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      user.isActive
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-[#e8e3dc] text-[#5c564c]"
+                    }`}
+                  >
+                    {user.isActive ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-sm text-[#6a6358]">
+                  {user.createdAt ? formatDate(user.createdAt) : "—"}
+                </td>
+                <td className="px-4 py-3 text-right text-sm">
+                  {showEdit ? (
+                    <button
+                      type="button"
+                      onClick={() => onEditClick?.(user)}
+                      className="font-semibold text-[#6B7A3E] hover:text-[#5a6734]"
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <span className="text-[#9a9288]">—</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
