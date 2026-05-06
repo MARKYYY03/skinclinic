@@ -1,18 +1,41 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import ExportButton from "@/components/reports/ExportButton"
 import ReportFilters from "@/components/reports/ReportFilters"
-import { mockExpenseReport } from "@/lib/mock/reports"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { formatCurrency } from "@/lib/utils"
+import type { ExpenseReportRow } from "@/types/reports"
 
 export default function ExpensesReportPage() {
   const [startDate, setStartDate] = useState("2026-05-01")
   const [endDate, setEndDate] = useState("2026-05-31")
+  const [rows, setRows] = useState<ExpenseReportRow[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data } = await supabaseClient
+        .from("expenses")
+        .select("category, amount, expense_date")
+        .gte("expense_date", startDate)
+        .lte("expense_date", endDate)
+
+      const grouped = new Map<string, number>()
+      ;(data ?? []).forEach((row) => {
+        grouped.set(row.category, (grouped.get(row.category) ?? 0) + Number(row.amount ?? 0))
+      })
+      const mapped = Array.from(grouped.entries()).map(([category, amount]) => ({ category, amount }))
+      if (!cancelled) setRows(mapped)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [endDate, startDate])
 
   const total = useMemo(
-    () => mockExpenseReport.reduce((sum, item) => sum + item.amount, 0),
-    [],
+    () => rows.reduce((sum, item) => sum + item.amount, 0),
+    [rows],
   )
 
   return (
@@ -22,7 +45,7 @@ export default function ExpensesReportPage() {
         <ExportButton
           filename="expense-report.csv"
           headers={["Category", "Amount"]}
-          rows={mockExpenseReport.map((row) => [row.category, row.amount])}
+          rows={rows.map((row) => [row.category, row.amount])}
         />
       </div>
 
@@ -47,7 +70,7 @@ export default function ExpensesReportPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {mockExpenseReport.map((row) => (
+            {rows.map((row) => (
               <tr key={row.category}>
                 <td className="px-3 py-2 text-sm text-gray-700">{row.category}</td>
                 <td className="px-3 py-2 text-right text-sm text-gray-700">{formatCurrency(row.amount)}</td>

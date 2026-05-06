@@ -1,114 +1,149 @@
 "use client"
 
 import Link from "next/link"
-import { Transaction } from "@/types/transaction"
-import { formatDate, formatCurrency } from "@/lib/utils"
+import { useMemo } from "react"
+
+import type { Transaction } from "@/types/transaction"
+import { formatCurrency, formatDateTime } from "@/lib/utils"
 
 interface TransactionTableProps {
   transactions: Transaction[]
-  onDelete?: (id: string) => void
 }
 
-export default function TransactionTable({
-  transactions,
-  onDelete,
-}: TransactionTableProps) {
-  const getStatusColor = (status: string) => {
+export default function TransactionTable({ transactions }: TransactionTableProps) {
+  const totals = useMemo(() => {
+    const net = transactions.reduce((s, t) => s + t.netAmount, 0)
+    const paid = transactions.reduce((s, t) => s + t.amountPaid, 0)
+    const bal = transactions.reduce((s, t) => s + t.balanceDue, 0)
+    return { net, paid, bal }
+  }, [transactions])
+
+  function statusBadge(status: string) {
     switch (status) {
       case "Completed":
-        return "bg-green-100 text-green-800"
+        return "bg-emerald-100 text-emerald-900"
       case "Partial":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-amber-100 text-amber-950"
       case "Voided":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-900 line-through"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-[#e8e3dc] text-[#314031]"
     }
   }
 
   return (
-    <div className="rounded-lg bg-white shadow overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Transaction ID
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Client
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Date
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Items
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Amount
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {transactions.length === 0 ? (
+    <div className="overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-[#e5ded4]">
+          <thead className="bg-[#F5F0E8]/80">
             <tr>
-              <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                No transactions found
-              </td>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Date &amp; time
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Client
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Net
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Paid
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Balance
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Cashier
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Actions
+              </th>
             </tr>
-          ) : (
-            transactions.map((transaction) => (
-              <tr key={transaction.id} className="hover:bg-gray-50">
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-blue-600">
-                  {transaction.id.substring(0, 8)}...
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                  {transaction.clientName}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                  {formatDate(transaction.createdAt)}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                  {transaction.items.length} item{transaction.items.length !== 1 ? "s" : ""}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                  {formatCurrency(transaction.netAmount)}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                    {transaction.status}
-                  </span>
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium space-x-2">
-                  <Link
-                    href={`/transactions/${transaction.id}`}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    View
-                  </Link>
-                  {onDelete && (
-                    <button
-                      onClick={() => {
-                        if (confirm("Are you sure?")) {
-                          onDelete(transaction.id)
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  )}
+          </thead>
+          <tbody className="divide-y divide-[#e5ded4] bg-white">
+            {transactions.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={8}
+                  className="px-4 py-12 text-center text-sm text-[#6a6358]"
+                >
+                  No transactions in this range
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              transactions.map((t) => (
+                <tr
+                  key={t.id}
+                  className={`hover:bg-[#F5F0E8]/40 ${t.status === "Voided" ? "opacity-80" : ""}`}
+                >
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-[#314031]">
+                    {formatDateTime(t.createdAt)}
+                  </td>
+                  <td className="max-w-[12rem] truncate px-4 py-3 text-sm font-medium text-[#1f2918]">
+                    {t.clientName}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-[#314031]">
+                    {formatCurrency(t.netAmount)}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-[#314031]">
+                    {formatCurrency(t.amountPaid)}
+                  </td>
+                  <td
+                    className={`whitespace-nowrap px-4 py-3 text-right text-sm font-medium ${
+                      t.balanceDue > 0 ? "text-red-700" : "text-[#314031]"
+                    }`}
+                  >
+                    {formatCurrency(t.balanceDue)}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge(t.status)}`}
+                    >
+                      {t.status}
+                    </span>
+                  </td>
+                  <td className="max-w-[10rem] truncate px-4 py-3 text-sm text-[#6a6358]">
+                    {t.createdBy}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
+                    <Link
+                      href={`/transactions/${t.id}`}
+                      className="font-semibold text-[#6B7A3E] hover:text-[#5a6734]"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          {transactions.length > 0 ? (
+            <tfoot className="border-t-2 border-[#6B7A3E]/40 bg-[#F5F0E8]/90">
+              <tr>
+                <td
+                  colSpan={2}
+                  className="px-4 py-3 text-sm font-semibold text-[#1f2918]"
+                >
+                  Totals ({transactions.length})
+                </td>
+                <td className="px-4 py-3 text-right text-sm font-bold text-[#1f2918]">
+                  {formatCurrency(totals.net)}
+                </td>
+                <td className="px-4 py-3 text-right text-sm font-bold text-[#1f2918]">
+                  {formatCurrency(totals.paid)}
+                </td>
+                <td className="px-4 py-3 text-right text-sm font-bold text-red-800">
+                  {formatCurrency(totals.bal)}
+                </td>
+                <td colSpan={3} />
+              </tr>
+            </tfoot>
+          ) : null}
+        </table>
+      </div>
     </div>
   )
 }

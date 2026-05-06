@@ -1,51 +1,76 @@
+import KpiCard from "@/components/dashboard/KpiCard"
+import RecentTransactions from "@/components/dashboard/RecentTransactions"
 import PageWrapper from "@/components/layout/PageWrapper"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { formatCurrency } from "@/lib/utils"
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createServerSupabaseClient()
+  const today = new Date()
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+  const [{ data: salesRows }, { count: activeClients }, { data: arRows }, { data: commRows }, { data: recentRows }] =
+    await Promise.all([
+      supabase
+        .from("transactions")
+        .select("net_amount")
+        .gte("created_at", startOfToday.toISOString())
+        .neq("status", "Voided"),
+      supabase
+        .from("clients")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true),
+      supabase.from("transactions").select("balance_due").eq("status", "Partial"),
+      supabase
+        .from("commissions")
+        .select("commission_amount")
+        .gte("created_at", startOfMonth.toISOString()),
+      supabase
+        .from("transactions")
+        .select("id, client_name, net_amount, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ])
+
+  const todaySales = (salesRows ?? []).reduce((sum, row) => sum + Number(row.net_amount ?? 0), 0)
+  const pendingAr = (arRows ?? []).reduce((sum, row) => sum + Number(row.balance_due ?? 0), 0)
+  const monthCommissions = (commRows ?? []).reduce(
+    (sum, row) => sum + Number(row.commission_amount ?? 0),
+    0,
+  )
+
   return (
     <PageWrapper className="py-4">
-      <div className="space-y-4">
-        <div className="rounded-lg border border-[#d8ddd5] bg-[#f1f3ef] px-4 py-2">
-          <h2 className="text-3xl font-bold text-[#1f2b1f]">Dashboard</h2>
-          <p className="mt-1 text-[#617361]">
-            Welcome to Relevare - Skincare Management System
-          </p>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold text-[#1f2918]">Dashboard</h2>
+          <p className="mt-1 text-[#6a6358]">Live performance snapshot</p>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-[#d8ddd5] bg-white p-6">
-            <h3 className="text-lg font-semibold text-[#1f2b1f]">Today&apos;s Sales</h3>
-            <p className="text-2xl font-bold text-[#244826]">₱0.00</p>
-          </div>
-          <div className="rounded-lg border border-[#d8ddd5] bg-white p-6">
-            <h3 className="text-lg font-semibold text-[#1f2b1f]">Active Clients</h3>
-            <p className="text-2xl font-bold text-[#244826]">0</p>
-          </div>
-          <div className="rounded-lg border border-[#d8ddd5] bg-white p-6">
-            <h3 className="text-lg font-semibold text-[#1f2b1f]">Low Stock Items</h3>
-            <p className="text-2xl font-bold text-[#244826]">0</p>
-          </div>
-          <div className="rounded-lg border border-[#d8ddd5] bg-white p-6">
-            <h3 className="text-lg font-semibold text-[#1f2b1f]">Pending Transactions</h3>
-            <p className="text-2xl font-bold text-[#244826]">0</p>
-          </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <KpiCard title="Today's Sales" value={formatCurrency(todaySales)} />
+          <KpiCard title="Active Clients" value={String(activeClients ?? 0)} />
+          <KpiCard
+            title="Pending AR"
+            value={formatCurrency(pendingAr)}
+            tone={pendingAr > 0 ? "warning" : "default"}
+          />
+          <KpiCard
+            title="Total Commissions (This Month)"
+            value={formatCurrency(monthCommissions)}
+          />
         </div>
 
-        {/* Charts and Recent Activity Placeholder */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-lg border border-[#d8ddd5] bg-white p-6">
-            <h3 className="mb-4 text-lg font-semibold text-[#1f2b1f]">Sales Chart</h3>
-            <div className="flex h-64 items-center justify-center rounded bg-[#f1f3ef]">
-              <p className="text-[#7d8f7d]">Sales chart will be displayed here</p>
-            </div>
-          </div>
-          <div className="rounded-lg border border-[#d8ddd5] bg-white p-6">
-            <h3 className="mb-4 text-lg font-semibold text-[#1f2b1f]">Recent Transactions</h3>
-            <div className="space-y-3">
-              <p className="text-[#7d8f7d]">Recent transactions will be listed here</p>
-            </div>
-          </div>
-        </div>
+        <RecentTransactions
+          rows={(recentRows ?? []).map((row) => ({
+            id: row.id,
+            clientName: row.client_name ?? "Walk-in",
+            netAmount: Number(row.net_amount ?? 0),
+            status: row.status ?? "Completed",
+            createdAt: row.created_at,
+          }))}
+        />
       </div>
     </PageWrapper>
   )

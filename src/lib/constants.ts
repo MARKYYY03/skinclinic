@@ -27,8 +27,21 @@ export const INVENTORY_ADJUSTMENT_TYPES = [
   "Damaged",
 ] as const
 
-// Navigation configuration for role-based access
-export const NAVIGATION_ITEMS = [
+export type NavChildItem = {
+  readonly name: string
+  readonly href: string
+}
+
+export type NavItem = {
+  readonly name: string
+  readonly href?: string
+  readonly icon: string
+  readonly roles: readonly string[]
+  readonly children?: readonly NavChildItem[]
+}
+
+/** Phase 1 order; role visibility per RELEVARE_COPILOT_PHASES.md (+ Settings/profile for Staff/Cashier). */
+export const NAVIGATION_ITEMS: readonly NavItem[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -42,18 +55,6 @@ export const NAVIGATION_ITEMS = [
     roles: ["Owner", "Admin", "Cashier", "Staff"],
   },
   {
-    name: "Services",
-    href: "/services",
-    icon: "Scissors",
-    roles: ["Owner", "Admin"],
-  },
-  {
-    name: "Products",
-    href: "/products",
-    icon: "Package",
-    roles: ["Owner", "Admin"],
-  },
-  {
     name: "Transactions",
     href: "/transactions",
     icon: "Receipt",
@@ -63,12 +64,18 @@ export const NAVIGATION_ITEMS = [
     name: "Packages",
     href: "/packages",
     icon: "Gift",
+    roles: ["Owner", "Admin", "Cashier"],
+  },
+  {
+    name: "Services",
+    href: "/services",
+    icon: "Scissors",
     roles: ["Owner", "Admin"],
   },
   {
-    name: "Commissions",
-    href: "/commissions",
-    icon: "DollarSign",
+    name: "Products",
+    href: "/products",
+    icon: "Package",
     roles: ["Owner", "Admin"],
   },
   {
@@ -84,15 +91,41 @@ export const NAVIGATION_ITEMS = [
     roles: ["Owner", "Admin"],
   },
   {
+    name: "Commissions",
+    href: "/commissions",
+    icon: "DollarSign",
+    roles: ["Owner", "Admin", "Staff"],
+  },
+  {
     name: "Reports",
-    href: "/reports/sales",
     icon: "BarChart3",
     roles: ["Owner", "Admin"],
+    children: [
+      { name: "Sales", href: "/reports/sales" },
+      { name: "Commissions", href: "/reports/commissions" },
+    ],
   },
   {
     name: "Settings",
-    href: "/settings/users",
+    href: "/settings/profile",
     icon: "Settings",
-    roles: ["Owner", "Admin"],
+    roles: ["Owner", "Admin", "Cashier", "Staff"],
   },
-] as const
+]
+
+/** Page title shown in Header for a pathname (handles nested Reports). */
+export function navigationTitleForPath(pathname: string): string | undefined {
+  for (const item of NAVIGATION_ITEMS) {
+    if (item.href && (pathname === item.href || pathname.startsWith(`${item.href}/`))) {
+      return item.name
+    }
+    if (item.children) {
+      for (const child of item.children) {
+        if (pathname === child.href || pathname.startsWith(`${child.href}/`)) {
+          return child.name
+        }
+      }
+    }
+  }
+  return undefined
+}

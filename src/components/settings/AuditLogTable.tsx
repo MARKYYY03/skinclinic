@@ -1,5 +1,5 @@
 import { formatDate } from "@/lib/utils"
-import { AuditLogEntry } from "@/lib/mock/settings"
+import { AuditLogEntry } from "@/types/audit-log"
 
 interface AuditLogTableProps {
   logs: AuditLogEntry[]

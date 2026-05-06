@@ -1,8 +1,9 @@
-export interface Service {
+export type ServiceListRow = {
   id: string
   name: string
-  description?: string
+  description: string | null
+  category: string | null
   price: number
-  category: string
-  isActive: boolean
+  commission_rate: number | null
+  is_active: boolean
 }

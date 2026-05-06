@@ -8,46 +8,60 @@ interface ClientFormProps {
   initialData?: Partial<Client>
   onSubmit: (data: Omit<Client, "id" | "createdAt">) => Promise<void>
   isLoading?: boolean
+  submitLabel?: string
+  cancelHref?: string
 }
 
-export default function ClientForm({ initialData, onSubmit, isLoading = false }: ClientFormProps) {
+export default function ClientForm({
+  initialData,
+  onSubmit,
+  isLoading = false,
+  submitLabel = "Save client",
+  cancelHref = "/clients",
+}: ClientFormProps) {
   const router = useRouter()
+
+  const displayEmail =
+    initialData?.email && initialData.email !== "—" ? initialData.email : ""
+
   const [formData, setFormData] = useState({
-    fullName: initialData?.fullName || "",
-    contactNumber: initialData?.contactNumber || "",
-    email: initialData?.email || "",
-    address: initialData?.address || "",
-    birthdate: initialData?.birthdate || "",
-    gender: initialData?.gender || "Female" as "Male" | "Female" | "Other",
-    medicalHistory: initialData?.medicalHistory || "",
-    allergies: initialData?.allergies || "",
-    notes: initialData?.notes || "",
-    category: initialData?.category || "Regular" as "Regular" | "VIP"
+    fullName: initialData?.fullName ?? "",
+    contactNumber: initialData?.contactNumber ?? "",
+    email: displayEmail,
+    address: initialData?.address ?? "",
+    birthdate: initialData?.birthdate ?? "",
+    gender: initialData?.gender ?? ("Female" as "Male" | "Female" | "Other"),
+    medicalHistory: initialData?.medicalHistory ?? "",
+    allergies: initialData?.allergies ?? "",
+    notes: initialData?.notes ?? "",
+    category:
+      initialData?.category ?? ("Regular" as "Regular" | "VIP"),
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState<string | null>(null)
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required"
+      newErrors.fullName = "Full name is required."
     }
 
-    if (!formData.contactNumber.trim()) {
-      newErrors.contactNumber = "Contact number is required"
-    } else if (!/^(\+63|0)[0-9]{10}$/.test(formData.contactNumber)) {
-      newErrors.contactNumber = "Please enter a valid Philippine phone number"
+    if (formData.email.trim()) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = "Enter a valid email address."
+      }
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
-    }
-
-    if (!formData.birthdate) {
-      newErrors.birthdate = "Birthdate is required"
+    if (formData.contactNumber.trim()) {
+      const trimmed = formData.contactNumber.trim()
+      if (
+        trimmed.length > 0 &&
+        !/^(\+63|0)?[0-9]{10,11}$/.test(trimmed.replace(/\s+/g, ""))
+      ) {
+        newErrors.contactNumber = "Enter a valid contact number."
+      }
     }
 
     setErrors(newErrors)
@@ -56,117 +70,148 @@ export default function ClientForm({ initialData, onSubmit, isLoading = false }:
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError(null)
 
     if (!validateForm()) {
       return
     }
 
     try {
-      await onSubmit(formData)
-      router.push("/clients")
+      const trimmedContact = formData.contactNumber.trim().replace(/\s+/g, "")
+      await onSubmit({
+        fullName: formData.fullName.trim(),
+        contactNumber: trimmedContact,
+        email: formData.email.trim(),
+        address: formData.address.trim(),
+        birthdate: formData.birthdate.trim(),
+        gender: formData.gender,
+        medicalHistory: formData.medicalHistory.trim(),
+        allergies: formData.allergies.trim(),
+        notes: formData.notes.trim(),
+        category: formData.category,
+      })
     } catch (error) {
-      console.error("Error submitting form:", error)
+      setFormError(
+        error instanceof Error ? error.message : "Something went wrong.",
+      )
     }
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
+    setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }))
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Basic Information */}
-      <div className="rounded-lg bg-white p-6 shadow">
-        <h3 className="mb-4 text-lg font-medium text-gray-900">Basic Information</h3>
+      {formError ? (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+        >
+          {formError}
+        </div>
+      ) : null}
+
+      <div className="rounded-xl border border-[#dfd8cf] bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-lg font-medium text-[#1f2918]">
+          Basic information
+        </h3>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-              Full Name *
+            <label
+              htmlFor="fullName"
+              className="block text-sm font-medium text-[#314031]"
+            >
+              Full name *
             </label>
             <input
               type="text"
               id="fullName"
               value={formData.fullName}
               onChange={(e) => handleInputChange("fullName", e.target.value)}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                errors.fullName ? "border-red-300" : "border-gray-300"
-              }`}
-              placeholder="Enter full name"
+              className={`mt-1 block w-full rounded-lg border px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.fullName ? "border-red-300" : "border-[#cfc6ba]"}`}
+              placeholder="Client full name"
             />
-            {errors.fullName && (
+            {errors.fullName ? (
               <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
-            )}
+            ) : null}
           </div>
 
           <div>
-            <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700">
-              Contact Number *
+            <label
+              htmlFor="contactNumber"
+              className="block text-sm font-medium text-[#314031]"
+            >
+              Contact number
             </label>
             <input
               type="tel"
               id="contactNumber"
               value={formData.contactNumber}
-              onChange={(e) => handleInputChange("contactNumber", e.target.value)}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                errors.contactNumber ? "border-red-300" : "border-gray-300"
-              }`}
-              placeholder="+639123456789 or 09123456789"
+              onChange={(e) =>
+                handleInputChange("contactNumber", e.target.value)
+              }
+              className={`mt-1 block w-full rounded-lg border px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.contactNumber ? "border-red-300" : "border-[#cfc6ba]"}`}
+              placeholder="09xx or +63..."
             />
-            {errors.contactNumber && (
+            {errors.contactNumber ? (
               <p className="mt-1 text-sm text-red-600">{errors.contactNumber}</p>
-            )}
+            ) : null}
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email *
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-[#314031]"
+            >
+              Email
             </label>
             <input
               type="email"
               id="email"
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                errors.email ? "border-red-300" : "border-gray-300"
-              }`}
-              placeholder="client@example.com"
+              className={`mt-1 block w-full rounded-lg border px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.email ? "border-red-300" : "border-[#cfc6ba]"}`}
+              placeholder="name@example.com"
             />
-            {errors.email && (
+            {errors.email ? (
               <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-            )}
+            ) : null}
           </div>
 
           <div>
-            <label htmlFor="birthdate" className="block text-sm font-medium text-gray-700">
-              Birthdate *
+            <label
+              htmlFor="birthdate"
+              className="block text-sm font-medium text-[#314031]"
+            >
+              Birthdate
             </label>
             <input
               type="date"
               id="birthdate"
               value={formData.birthdate}
-              onChange={(e) => handleInputChange("birthdate", e.target.value)}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                errors.birthdate ? "border-red-300" : "border-gray-300"
-              }`}
+              onChange={(e) =>
+                handleInputChange("birthdate", e.target.value)
+              }
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
-            {errors.birthdate && (
-              <p className="mt-1 text-sm text-red-600">{errors.birthdate}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="gender"
+              className="block text-sm font-medium text-[#314031]"
+            >
               Gender
             </label>
             <select
               id="gender"
               value={formData.gender}
               onChange={(e) => handleInputChange("gender", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             >
               <option value="Female">Female</option>
               <option value="Male">Male</option>
@@ -175,14 +220,19 @@ export default function ClientForm({ initialData, onSubmit, isLoading = false }:
           </div>
 
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-[#314031]"
+            >
               Category
             </label>
             <select
               id="category"
               value={formData.category}
-              onChange={(e) => handleInputChange("category", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              onChange={(e) =>
+                handleInputChange("category", e.target.value)
+              }
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             >
               <option value="Regular">Regular</option>
               <option value="VIP">VIP</option>
@@ -191,7 +241,10 @@ export default function ClientForm({ initialData, onSubmit, isLoading = false }:
         </div>
 
         <div className="mt-6">
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="address"
+            className="block text-sm font-medium text-[#314031]"
+          >
             Address
           </label>
           <textarea
@@ -199,32 +252,39 @@ export default function ClientForm({ initialData, onSubmit, isLoading = false }:
             rows={3}
             value={formData.address}
             onChange={(e) => handleInputChange("address", e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="Enter complete address"
+            className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
           />
         </div>
       </div>
 
-      {/* Medical Information */}
-      <div className="rounded-lg bg-white p-6 shadow">
-        <h3 className="mb-4 text-lg font-medium text-gray-900">Medical Information</h3>
+      <div className="rounded-xl border border-[#dfd8cf] bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-lg font-medium text-[#1f2918]">
+          Clinical notes
+        </h3>
         <div className="space-y-6">
           <div>
-            <label htmlFor="medicalHistory" className="block text-sm font-medium text-gray-700">
-              Medical History
+            <label
+              htmlFor="medicalHistory"
+              className="block text-sm font-medium text-[#314031]"
+            >
+              Medical history
             </label>
             <textarea
               id="medicalHistory"
               rows={3}
               value={formData.medicalHistory}
-              onChange={(e) => handleInputChange("medicalHistory", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="List any medical conditions, surgeries, or ongoing treatments"
+              onChange={(e) =>
+                handleInputChange("medicalHistory", e.target.value)
+              }
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
 
           <div>
-            <label htmlFor="allergies" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="allergies"
+              className="block text-sm font-medium text-[#314031]"
+            >
               Allergies
             </label>
             <textarea
@@ -232,42 +292,42 @@ export default function ClientForm({ initialData, onSubmit, isLoading = false }:
               rows={2}
               value={formData.allergies}
               onChange={(e) => handleInputChange("allergies", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="List any known allergies (medications, products, etc.)"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-              Additional Notes
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-[#314031]"
+            >
+              Notes
             </label>
             <textarea
               id="notes"
               rows={3}
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Any additional notes or preferences"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
         </div>
       </div>
 
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-3 rounded-lg bg-white px-6 py-4 shadow">
+      <div className="flex justify-end gap-3 rounded-xl border border-[#dfd8cf] bg-white px-6 py-4 shadow-sm">
         <button
           type="button"
-          onClick={() => router.back()}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          onClick={() => router.push(cancelHref)}
+          className="rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm font-medium text-[#314031] hover:bg-[#F5F0E8]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-lg bg-[#6B7A3E] px-4 py-2 text-sm font-semibold text-[#F5F0E8] hover:bg-[#5a6734] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isLoading ? "Saving..." : "Save Client"}
+          {isLoading ? "Saving…" : submitLabel}
         </button>
       </div>
     </form>
