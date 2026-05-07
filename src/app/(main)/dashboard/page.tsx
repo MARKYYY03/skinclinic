@@ -5,6 +5,7 @@ import KpiCard from "@/components/dashboard/KpiCard"
 import RecentTransactions from "@/components/dashboard/RecentTransactions"
 import PaymentMethodsChart from "@/components/dashboard/PaymentMethodsChart"
 import SalesChart from "@/components/dashboard/SalesChart"
+import ServicesChart from "@/components/dashboard/ServicesChart"
 import StaffCommissionsWidget from "@/components/dashboard/StaffCommissionsWidget"
 import TransactionChart from "@/components/dashboard/TransactionChart"
 import PageWrapper from "@/components/layout/PageWrapper"
@@ -31,6 +32,11 @@ interface PaymentMethodDataPoint {
   count: number
 }
 
+interface ServiceDataPoint {
+  name: string
+  count: number
+}
+
 export default function DashboardPage() {
   const toLocalDateKey = (date: Date) => {
     const year = date.getFullYear()
@@ -48,32 +54,20 @@ export default function DashboardPage() {
   const [pendingAr, setPendingAr] = useState(0)
   const [monthCommissions, setMonthCommissions] = useState(0)
   const [paymentMethodData, setPaymentMethodData] = useState<PaymentMethodDataPoint[]>([])
+  const [serviceData, setServiceData] = useState<ServiceDataPoint[]>([])
   const [topStaffCommissions, setTopStaffCommissions] = useState<StaffCommissionRow[]>([])
   const [recentTransactions, setRecentTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [chartsLoading, setChartsLoading] = useState(false)
 
+  // Initial dashboard data load (runs once on mount)
   useEffect(() => {
-    const loadDashboard = async () => {
+    const loadInitialData = async () => {
       setLoading(true)
       try {
         const today = new Date()
         const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-
-        const getRangeStart = (type: "weekly" | "monthly") => {
-          const start = new Date(startOfToday)
-          if (type === "weekly") {
-            const dayOfWeek = start.getDay() // 0 = Sunday
-            start.setDate(start.getDate() - dayOfWeek)
-          } else {
-            start.setDate(1)
-            start.setMonth(0)
-          }
-          return start
-        }
-
-        const salesStartOfRange = getRangeStart(salesViewType)
-        const transactionStartOfRange = getRangeStart(transactionViewType)
 
         const [
           { data: salesRows },
@@ -81,9 +75,8 @@ export default function DashboardPage() {
           { data: arRows },
           { data: commRows },
           { data: recentRows },
-          { data: salesRangeRows },
-          { data: transactionRangeRows },
-          { data: monthTxRows },
+          { data: serviceRows },
+          { data: paymentRows },
         ] = await Promise.all([
           supabaseClient
             .from("transactions")
@@ -105,20 +98,16 @@ export default function DashboardPage() {
             .order("created_at", { ascending: false })
             .limit(5),
           supabaseClient
-            .from("transactions")
-            .select("id, created_at, net_amount")
-            .gte("created_at", salesStartOfRange.toISOString())
-            .neq("status", "Voided"),
+            .from("transaction_items")
+            .select("item_name, quantity, transactions!inner(created_at, status)")
+            .eq("item_type", "service")
+            .gte("transactions.created_at", startOfMonth.toISOString())
+            .neq("transactions.status", "Voided"),
           supabaseClient
-            .from("transactions")
-            .select("id, created_at")
-            .gte("created_at", transactionStartOfRange.toISOString())
-            .neq("status", "Voided"),
-          supabaseClient
-            .from("transactions")
-            .select("id")
-            .gte("created_at", startOfMonth.toISOString())
-            .neq("status", "Voided"),
+            .from("transaction_payments")
+            .select("method, transactions!inner(created_at, status)")
+            .gte("transactions.created_at", startOfMonth.toISOString())
+            .neq("transactions.status", "Voided"),
         ])
 
         // Today's sales
@@ -131,6 +120,124 @@ export default function DashboardPage() {
         // Pending AR
         const pending = (arRows ?? []).reduce((sum, row) => sum + Number(row.balance_due ?? 0), 0)
         setPendingAr(pending)
+
+        // Staff commissions
+        const staffTotals = new Map<string, number>()
+        ;(commRows ?? []).forEach((row) => {
+          if (!row.staff_id) return
+          staffTotals.set(
+            row.staff_id,
+            (staffTotals.get(row.staff_id) ?? 0) + Number(row.commission_amount ?? 0),
+          )
+        })
+
+        const staffIds = Array.from(staffTotals.keys())
+        const staffProfiles = staffIds.length
+          ? await supabaseClient.from("profiles").select("id, full_name").in("id", staffIds)
+          : { data: [] as Array<{ id: string; full_name: string | null }> }
+
+        const staffNameById = new Map(
+          (staffProfiles.data ?? []).map((profile) => [profile.id, profile.full_name ?? "Unknown"]),
+        )
+        const topStaff = Array.from(staffTotals.entries())
+          .map(([staffId, total]) => ({
+            staffName: staffNameById.get(staffId) ?? "Unknown",
+            total,
+          }))
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 3)
+        setTopStaffCommissions(topStaff)
+
+        const monthComm = (commRows ?? []).reduce(
+          (sum, row) => sum + Number(row.commission_amount ?? 0),
+          0,
+        )
+        setMonthCommissions(monthComm)
+
+        const paymentMethods: PaymentMethodDataPoint["method"][] = [
+          "Cash",
+          "GCash",
+          "Maya",
+          "Card",
+          "BankTransfer",
+          "HomeCredit",
+        ]
+        const paymentCountMap = new Map<PaymentMethodDataPoint["method"], number>()
+        paymentMethods.forEach((method) => paymentCountMap.set(method, 0))
+        ;(paymentRows ?? []).forEach((row) => {
+          const method = row.method as PaymentMethodDataPoint["method"] | null
+          if (method && paymentCountMap.has(method)) {
+            paymentCountMap.set(method, (paymentCountMap.get(method) ?? 0) + 1)
+          }
+        })
+        setPaymentMethodData(
+          paymentMethods.map((method) => ({
+            method,
+            count: paymentCountMap.get(method) ?? 0,
+          })),
+        )
+
+        const serviceCountMap = new Map<string, number>()
+        ;(serviceRows ?? []).forEach((row) => {
+          const serviceName = (row.item_name ?? "").trim()
+          if (!serviceName) return
+          const qty = Math.max(1, Number(row.quantity ?? 1))
+          serviceCountMap.set(serviceName, (serviceCountMap.get(serviceName) ?? 0) + qty)
+        })
+        setServiceData(
+          Array.from(serviceCountMap.entries()).map(([name, count]) => ({
+            name,
+            count,
+          })),
+        )
+
+        // Recent transactions
+        setRecentTransactions(
+          (recentRows ?? []).map((row) => ({
+            id: row.id,
+            clientName: row.client_name ?? "Walk-in",
+            netAmount: Number(row.net_amount ?? 0),
+            status: row.status ?? "Completed",
+            createdAt: row.created_at,
+          })),
+        )
+      } catch (error) {
+        console.error("Dashboard initial load error:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    void loadInitialData()
+  }, [])
+
+  // Sales chart data load (only when salesViewType changes)
+  useEffect(() => {
+    const loadSalesData = async () => {
+      setChartsLoading(true)
+      try {
+        const today = new Date()
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+        const getRangeStart = (type: "weekly" | "monthly") => {
+          const start = new Date(startOfToday)
+          if (type === "weekly") {
+            const dayOfWeek = start.getDay()
+            start.setDate(start.getDate() - dayOfWeek)
+          } else {
+            start.setDate(1)
+            start.setMonth(0)
+          }
+          return start
+        }
+
+        const salesStartOfRange = getRangeStart(salesViewType)
+
+        const { data: salesRangeRows } = await supabaseClient
+          .from("transactions")
+          .select("id, created_at, net_amount")
+          .gte("created_at", salesStartOfRange.toISOString())
+          .neq("status", "Voided")
 
         // Build sales chart data
         let chartData: SalesDataPoint[] = []
@@ -192,8 +299,45 @@ export default function DashboardPage() {
           }))
         }
         setSalesData(chartData)
+      } catch (error) {
+        console.error("Sales chart load error:", error)
+      } finally {
+        setChartsLoading(false)
+      }
+    }
 
-        // Build transaction chart data (independent view type)
+    void loadSalesData()
+  }, [salesViewType])
+
+  // Transaction chart data load (only when transactionViewType changes)
+  useEffect(() => {
+    const loadTransactionData = async () => {
+      setChartsLoading(true)
+      try {
+        const today = new Date()
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+        const getRangeStart = (type: "weekly" | "monthly") => {
+          const start = new Date(startOfToday)
+          if (type === "weekly") {
+            const dayOfWeek = start.getDay()
+            start.setDate(start.getDate() - dayOfWeek)
+          } else {
+            start.setDate(1)
+            start.setMonth(0)
+          }
+          return start
+        }
+
+        const transactionStartOfRange = getRangeStart(transactionViewType)
+
+        const { data: transactionRangeRows } = await supabaseClient
+          .from("transactions")
+          .select("id, created_at")
+          .gte("created_at", transactionStartOfRange.toISOString())
+          .neq("status", "Voided")
+
+        // Build transaction chart data
         let txData: TransactionDataPoint[] = []
         if (transactionViewType === "weekly") {
           const dayCount = 7
@@ -254,89 +398,15 @@ export default function DashboardPage() {
           }))
         }
         setTransactionData(txData)
-
-        // Staff commissions
-        const staffTotals = new Map<string, number>()
-        ;(commRows ?? []).forEach((row) => {
-          if (!row.staff_id) return
-          staffTotals.set(
-            row.staff_id,
-            (staffTotals.get(row.staff_id) ?? 0) + Number(row.commission_amount ?? 0),
-          )
-        })
-
-        const staffIds = Array.from(staffTotals.keys())
-        const staffProfiles = staffIds.length
-          ? await supabaseClient.from("profiles").select("id, full_name").in("id", staffIds)
-          : { data: [] as Array<{ id: string; full_name: string | null }> }
-
-        const staffNameById = new Map(
-          (staffProfiles.data ?? []).map((profile) => [profile.id, profile.full_name ?? "Unknown"]),
-        )
-        const topStaff = Array.from(staffTotals.entries())
-          .map(([staffId, total]) => ({
-            staffName: staffNameById.get(staffId) ?? "Unknown",
-            total,
-          }))
-          .sort((a, b) => b.total - a.total)
-          .slice(0, 3)
-        setTopStaffCommissions(topStaff)
-
-        const monthComm = (commRows ?? []).reduce(
-          (sum, row) => sum + Number(row.commission_amount ?? 0),
-          0,
-        )
-        setMonthCommissions(monthComm)
-
-        const paymentMethods: PaymentMethodDataPoint["method"][] = [
-          "Cash",
-          "GCash",
-          "Maya",
-          "Card",
-          "BankTransfer",
-          "HomeCredit",
-        ]
-        const monthTxIds = (monthTxRows ?? []).map((row) => row.id)
-        const { data: paymentRows } = monthTxIds.length
-          ? await supabaseClient
-              .from("transaction_payments")
-              .select("method")
-              .in("transaction_id", monthTxIds)
-          : { data: [] as Array<{ method: PaymentMethodDataPoint["method"] | null }> }
-        const paymentCountMap = new Map<PaymentMethodDataPoint["method"], number>()
-        paymentMethods.forEach((method) => paymentCountMap.set(method, 0))
-        ;(paymentRows ?? []).forEach((row) => {
-          const method = row.method as PaymentMethodDataPoint["method"] | null
-          if (method && paymentCountMap.has(method)) {
-            paymentCountMap.set(method, (paymentCountMap.get(method) ?? 0) + 1)
-          }
-        })
-        setPaymentMethodData(
-          paymentMethods.map((method) => ({
-            method,
-            count: paymentCountMap.get(method) ?? 0,
-          })),
-        )
-
-        // Recent transactions
-        setRecentTransactions(
-          (recentRows ?? []).map((row) => ({
-            id: row.id,
-            clientName: row.client_name ?? "Walk-in",
-            netAmount: Number(row.net_amount ?? 0),
-            status: row.status ?? "Completed",
-            createdAt: row.created_at,
-          })),
-        )
       } catch (error) {
-        console.error("Dashboard load error:", error)
+        console.error("Transaction chart load error:", error)
       } finally {
-        setLoading(false)
+        setChartsLoading(false)
       }
     }
 
-    void loadDashboard()
-  }, [salesViewType, transactionViewType])
+    void loadTransactionData()
+  }, [transactionViewType])
 
   if (loading) {
     return (
@@ -381,6 +451,7 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <StaffCommissionsWidget rows={topStaffCommissions} />
             <PaymentMethodsChart data={paymentMethodData} />
+            <ServicesChart data={serviceData} />
           </div>
         </div>
 

@@ -558,6 +558,9 @@ create policy "Transactions: cashier create"
 create policy "Transactions: admin manage"
   on transactions for update using (get_my_role() in ('Owner', 'Admin'));
 
+-- NOTE: `transaction_items` and `transaction_staff` also require row-level security policies
+-- for authenticated reads and cashier/admin inserts. See `RELEVARE_RLS_PATCH_TRANSACTION_ITEMS_AND_STAFF.sql`.
+
 -- ─── COMMISSIONS ──────────────────────────────────────────────
 -- Staff can only see their own commissions; Admin/Owner see all
 create policy "Commissions: own"

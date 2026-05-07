@@ -43,6 +43,9 @@ export default function TransactionTable({ transactions }: TransactionTableProps
               <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
                 Client
               </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Services
+              </th>
               <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
                 Net
               </th>
@@ -87,6 +90,12 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                   </td>
                   <td className="max-w-[12rem] truncate px-4 py-3 text-sm font-medium text-[#1f2918]">
                     {t.clientName}
+                  </td>
+                  <td className="max-w-[15rem] truncate px-4 py-3 text-sm text-[#6a6358]">
+                    {t.items
+                      .filter((it) => it.type === "service")
+                      .map((it) => it.name)
+                      .join(", ") || "—"}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-[#314031]">
                     {formatCurrency(t.netAmount)}
@@ -134,7 +143,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
             <tfoot className="border-t-2 border-[#6B7A3E]/40 bg-[#F5F0E8]/90">
               <tr>
                 <td
-                  colSpan={2}
+                  colSpan={3}
                   className="px-4 py-3 text-sm font-semibold text-[#1f2918]"
                 >
                   Totals ({transactions.length})
