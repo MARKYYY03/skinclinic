@@ -108,8 +108,14 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-[#1f2918]">My Profile</h2>
+        <p className="mt-1 text-sm text-[#5c564c]">
+          Manage your account information and password.
+        </p>
+      </div>
       <form onSubmit={saveProfile} className="space-y-3 rounded-lg bg-white p-5 shadow">
-        <h3 className="text-lg font-semibold text-gray-900">My Profile</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <input
             value={firstName}
