@@ -107,9 +107,13 @@ export const NAVIGATION_ITEMS: readonly NavItem[] = [
   },
   {
     name: "Settings",
-    href: "/settings/profile",
     icon: "Settings",
     roles: ["Owner", "Admin", "Cashier", "Staff"],
+    children: [
+      { name: "Profile", href: "/settings/profile" },
+      { name: "Users", href: "/settings/users" },
+      { name: "Audit Log", href: "/settings/audit-log" },
+    ],
   },
 ]
 

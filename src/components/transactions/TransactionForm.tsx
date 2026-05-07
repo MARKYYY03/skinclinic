@@ -274,6 +274,11 @@ export default function TransactionForm() {
       setSubmitError("Add at least one service line.")
       return
     }
+    const nonZeroPayments = payments.filter((p) => p.amount > 0)
+    if (nonZeroPayments.length === 0) {
+      setSubmitError("Add at least one payment with amount greater than 0.")
+      return
+    }
     if (staffIds.length === 0) {
       setSubmitError("Assign at least one staff member.")
       return
@@ -314,7 +319,7 @@ export default function TransactionForm() {
           isPackageRedemption: Boolean(it.isPackageRedemption),
           clientPackageId: it.clientPackageId ?? null,
         })),
-        payments: payments.filter((p) => p.amount > 0),
+        payments: nonZeroPayments,
         staffIds,
       })
       if (!r.ok) throw new Error(r.error)
@@ -461,6 +466,24 @@ export default function TransactionForm() {
             Add service
           </button>
         </div>
+
+        {services.length > 0 ? (
+          <div className="mb-4 rounded-lg border border-[#e5ded4] bg-[#faf8f2] p-3 text-sm text-[#314031]">
+            <p className="mb-2 font-medium text-[#1f2918]">Available services</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {services.map((service) => (
+                <div key={service.id} className="rounded-lg border border-[#e5ded4] bg-white px-3 py-2">
+                  <p className="font-medium text-[#1f2918]">{service.name}</p>
+                  <p className="text-xs text-[#6a6358]">{formatCurrency(service.price)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+            No active services available. Add services in the Services settings page.
+          </div>
+        )}
 
         <div className="space-y-3">
           {items.map((item, index) =>
