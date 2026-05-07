@@ -113,13 +113,13 @@ export default function Sidebar({
                   <li key={item.name}>
                     <Link
                       href={firstReportHref}
-                      title="Reports"
+                      title={item.name}
                       className={`flex items-center justify-center rounded-md px-3 py-2 text-sm transition-colors ${
                         childActive ? oliveActive : inactive
                       }`}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
-                      <span className="sr-only">Reports</span>
+                      <span className="sr-only">{item.name}</span>
                     </Link>
                   </li>
                 )

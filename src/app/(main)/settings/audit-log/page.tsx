@@ -98,8 +98,15 @@ export default function AuditLogPage() {
   )
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-[#1f2918]">Audit Log</h2>
+        <p className="mt-1 text-sm text-[#5c564c]">
+          View system activity and track changes made to your data.
+        </p>
+      </div>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <select
           value={actionFilter}
           onChange={(event) => setActionFilter(event.target.value)}
@@ -130,6 +137,7 @@ export default function AuditLogPage() {
         </div>
       ) : null}
       <AuditLogTable logs={filteredLogs} />
+      </div>
     </div>
   )
 }
