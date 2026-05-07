@@ -274,6 +274,11 @@ export default function TransactionForm() {
       setSubmitError("Add at least one service line.")
       return
     }
+    const nonZeroPayments = payments.filter((p) => p.amount > 0)
+    if (nonZeroPayments.length === 0) {
+      setSubmitError("Add at least one payment with amount greater than 0.")
+      return
+    }
     if (staffIds.length === 0) {
       setSubmitError("Assign at least one staff member.")
       return
@@ -314,7 +319,7 @@ export default function TransactionForm() {
           isPackageRedemption: Boolean(it.isPackageRedemption),
           clientPackageId: it.clientPackageId ?? null,
         })),
-        payments: payments.filter((p) => p.amount > 0),
+        payments: nonZeroPayments,
         staffIds,
       })
       if (!r.ok) throw new Error(r.error)

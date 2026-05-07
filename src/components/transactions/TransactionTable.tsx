@@ -56,6 +56,9 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                 Status
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
+                Payment Types
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
                 Cashier
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
@@ -67,7 +70,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
             {transactions.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="px-4 py-12 text-center text-sm text-[#6a6358]"
                 >
                   No transactions in this range
@@ -105,6 +108,13 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                       {t.status}
                     </span>
                   </td>
+                  <td className="max-w-[12rem] truncate px-4 py-3 text-sm text-[#314031]">
+                    {t.payments.length
+                      ? Array.from(new Set(t.payments.map((p) => p.method))).join(", ")
+                      : t.amountPaid > 0
+                        ? "Recorded (no split rows)"
+                        : "—"}
+                  </td>
                   <td className="max-w-[10rem] truncate px-4 py-3 text-sm text-[#6a6358]">
                     {t.createdBy}
                   </td>
@@ -138,7 +148,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                 <td className="px-4 py-3 text-right text-sm font-bold text-red-800">
                   {formatCurrency(totals.bal)}
                 </td>
-                <td colSpan={3} />
+                <td colSpan={4} />
               </tr>
             </tfoot>
           ) : null}

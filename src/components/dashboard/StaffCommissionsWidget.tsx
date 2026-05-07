@@ -11,6 +11,7 @@ interface StaffCommissionsWidgetProps {
 
 export default function StaffCommissionsWidget({ rows }: StaffCommissionsWidgetProps) {
   const total = rows.reduce((sum, row) => sum + row.total, 0)
+  const badgeLabel = rows.length <= 1 ? "Top earner" : "Top 3"
 
   return (
     <div className="rounded-xl border border-[#dfd8cf] bg-white p-5 shadow-sm">
@@ -21,7 +22,7 @@ export default function StaffCommissionsWidget({ rows }: StaffCommissionsWidgetP
 
       <div className="mt-5 flex items-center justify-between rounded-2xl bg-[#f8f5ef] px-4 py-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-[#6a6358]">Top 3</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[#6a6358]">{badgeLabel}</p>
           <p className="mt-1 text-2xl font-semibold text-[#1f2918]">{formatCurrency(total)}</p>
         </div>
         <div className="rounded-full bg-[#e7f5e8] px-3 py-2 text-sm font-semibold text-[#1f5b2b]">

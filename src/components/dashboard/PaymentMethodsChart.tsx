@@ -1,35 +1,51 @@
 "use client"
 
 import { Doughnut } from "react-chartjs-2"
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, ChartOptions } from "chart.js"
+import { ArcElement, Chart as ChartJS, Legend, Tooltip, ChartOptions } from "chart.js"
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
-interface PaymentMethodDatum {
-  method: string
-  total: number
+interface PaymentMethodPoint {
+  method: "Cash" | "GCash" | "Maya" | "Card" | "BankTransfer" | "HomeCredit"
+  count: number
 }
 
 interface PaymentMethodsChartProps {
-  data: PaymentMethodDatum[]
+  data: PaymentMethodPoint[]
 }
 
-const COLORS = ["#4f9f46", "#2563eb", "#f97316", "#db2777", "#8b5cf6", "#14b8a6"]
+const METHOD_ORDER: PaymentMethodPoint["method"][] = [
+  "Cash",
+  "GCash",
+  "Maya",
+  "Card",
+  "BankTransfer",
+  "HomeCredit",
+]
+
+const METHOD_COLORS: Record<PaymentMethodPoint["method"], string> = {
+  Cash: "#4f9f46",
+  GCash: "#3B82F6",
+  Maya: "#8B5CF6",
+  Card: "#f59e0b",
+  BankTransfer: "#14b8a6",
+  HomeCredit: "#ef4444",
+}
 
 export default function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
-  const total = data.reduce((sum, item) => sum + item.total, 0)
-  const labels = data.map((item) => item.method)
-  const values = data.map((item) => Number(item.total ?? 0))
+  const countByMethod = new Map(data.map((entry) => [entry.method, entry.count]))
+  const labels = METHOD_ORDER
+  const values = METHOD_ORDER.map((method) => countByMethod.get(method) ?? 0)
+  const total = values.reduce((sum, value) => sum + value, 0)
 
   const chartData = {
     labels,
     datasets: [
       {
         data: values,
-        backgroundColor: labels.map((_, index) => COLORS[index % COLORS.length]),
+        backgroundColor: METHOD_ORDER.map((method) => METHOD_COLORS[method]),
         borderColor: "#ffffff",
         borderWidth: 2,
-        hoverOffset: 10,
       },
     ],
   }
@@ -37,21 +53,26 @@ export default function PaymentMethodsChart({ data }: PaymentMethodsChartProps) 
   const options: ChartOptions<"doughnut"> = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: "68%",
     plugins: {
       legend: {
         position: "bottom",
         labels: {
-          color: "#314031",
+          color: "#6a6358",
           boxWidth: 12,
-          padding: 16,
+          boxHeight: 12,
+          padding: 12,
+          font: {
+            size: 11,
+          },
         },
       },
       tooltip: {
         callbacks: {
           label: (context) => {
-            const value = Number(context.parsed)
-            const share = total > 0 ? Math.round((value / total) * 100) : 0
-            return `${context.label}: ${value.toLocaleString()} (${share}%)`
+            const label = context.label ?? ""
+            const value = Number(context.parsed ?? 0)
+            return `${label}: ${value}`
           },
         },
       },
@@ -60,54 +81,25 @@ export default function PaymentMethodsChart({ data }: PaymentMethodsChartProps) 
 
   return (
     <div className="rounded-xl border border-[#dfd8cf] bg-white p-5 shadow-sm">
-      <div>
-        <p className="text-sm font-semibold text-[#1f2918]">Payment Methods</p>
-        <p className="mt-1 text-xs text-[#6a6358]">Last 30 days</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-[#1f2918]">Payment Methods</p>
+          <p className="mt-1 text-xs text-[#6a6358]">This month payment breakdown</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-[#6a6358]">Total</p>
+          <p className="text-xl font-semibold text-[#1f2918]">{total}</p>
+        </div>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-[180px_auto] md:items-center">
-        <div className="relative flex h-44 w-full items-center justify-center">
-          {total === 0 ? (
-            <div className="flex h-44 w-full items-center justify-center rounded-3xl bg-[#f5f0e8] text-sm text-[#6a6358]">
-              No payment amounts recorded in the last 30 days
-            </div>
-          ) : (
-            <div className="h-44 w-full">
-              <Doughnut data={chartData} options={options} />
-            </div>
-          )}
-        </div>
-
-        <div className="grid w-full gap-3">
-          {data.length === 0 ? (
-            <p className="text-sm text-[#6a6358]">No payment data available yet.</p>
-          ) : (
-            data.map((item, index) => {
-              const share = total > 0 ? Math.round((item.total / total) * 100) : 0
-              const colorClass = [
-                "bg-emerald-500",
-                "bg-blue-600",
-                "bg-orange-500",
-                "bg-pink-600",
-                "bg-violet-500",
-                "bg-teal-500",
-              ][index % 6]
-
-              return (
-                <div key={item.method} className="flex items-center justify-between gap-3 rounded-2xl bg-[#f8f5ef] px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <span className={`h-3 w-3 rounded-full ${colorClass}`} />
-                    <div>
-                      <p className="text-sm font-semibold text-[#1f2918]">{item.method}</p>
-                      <p className="text-xs text-[#6a6358]">{share}%</p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-semibold text-[#1f2918]">{item.total.toLocaleString()}</p>
-                </div>
-              )
-            })
-          )}
-        </div>
+      <div className="mt-5 h-[250px]">
+        {total === 0 ? (
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[#dfd8cf] text-sm text-[#6a6358]">
+            No payment data found this month.
+          </div>
+        ) : (
+          <Doughnut data={chartData} options={options} />
+        )}
       </div>
     </div>
   )

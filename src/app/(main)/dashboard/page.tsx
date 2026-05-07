@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react"
 import KpiCard from "@/components/dashboard/KpiCard"
 import RecentTransactions from "@/components/dashboard/RecentTransactions"
+import PaymentMethodsChart from "@/components/dashboard/PaymentMethodsChart"
 import SalesChart from "@/components/dashboard/SalesChart"
 import StaffCommissionsWidget from "@/components/dashboard/StaffCommissionsWidget"
+import TransactionChart from "@/components/dashboard/TransactionChart"
 import PageWrapper from "@/components/layout/PageWrapper"
 import { supabaseClient } from "@/lib/supabase/client"
 import { formatCurrency } from "@/lib/utils"
@@ -19,13 +21,33 @@ interface SalesDataPoint {
   amount: number
 }
 
+interface TransactionDataPoint {
+  label: string
+  count: number
+}
+
+interface PaymentMethodDataPoint {
+  method: "Cash" | "GCash" | "Maya" | "Card" | "BankTransfer" | "HomeCredit"
+  count: number
+}
+
 export default function DashboardPage() {
-  const [viewType, setViewType] = useState<"weekly" | "monthly">("weekly")
+  const toLocalDateKey = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
+  }
+
+  const [salesViewType, setSalesViewType] = useState<"weekly" | "monthly">("weekly")
+  const [transactionViewType, setTransactionViewType] = useState<"weekly" | "monthly">("weekly")
   const [salesData, setSalesData] = useState<SalesDataPoint[]>([])
+  const [transactionData, setTransactionData] = useState<TransactionDataPoint[]>([])
   const [todaySales, setTodaySales] = useState(0)
   const [activeClients, setActiveClients] = useState(0)
   const [pendingAr, setPendingAr] = useState(0)
   const [monthCommissions, setMonthCommissions] = useState(0)
+  const [paymentMethodData, setPaymentMethodData] = useState<PaymentMethodDataPoint[]>([])
   const [topStaffCommissions, setTopStaffCommissions] = useState<StaffCommissionRow[]>([])
   const [recentTransactions, setRecentTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,14 +60,31 @@ export default function DashboardPage() {
         const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-        const startOfRange = new Date(startOfToday)
-        if (viewType === "weekly") {
-          startOfRange.setDate(startOfRange.getDate() - 6)
-        } else {
-          startOfRange.setDate(1)
+        const getRangeStart = (type: "weekly" | "monthly") => {
+          const start = new Date(startOfToday)
+          if (type === "weekly") {
+            const dayOfWeek = start.getDay() // 0 = Sunday
+            start.setDate(start.getDate() - dayOfWeek)
+          } else {
+            start.setDate(1)
+            start.setMonth(0)
+          }
+          return start
         }
 
-        const [{ data: salesRows }, { count: activeClientsCount }, { data: arRows }, { data: commRows }, { data: recentRows }, { data: rangeRows }] = await Promise.all([
+        const salesStartOfRange = getRangeStart(salesViewType)
+        const transactionStartOfRange = getRangeStart(transactionViewType)
+
+        const [
+          { data: salesRows },
+          { count: activeClientsCount },
+          { data: arRows },
+          { data: commRows },
+          { data: recentRows },
+          { data: salesRangeRows },
+          { data: transactionRangeRows },
+          { data: monthTxRows },
+        ] = await Promise.all([
           supabaseClient
             .from("transactions")
             .select("net_amount")
@@ -68,7 +107,18 @@ export default function DashboardPage() {
           supabaseClient
             .from("transactions")
             .select("id, created_at, net_amount")
-            .gte("created_at", startOfRange.toISOString()),
+            .gte("created_at", salesStartOfRange.toISOString())
+            .neq("status", "Voided"),
+          supabaseClient
+            .from("transactions")
+            .select("id, created_at")
+            .gte("created_at", transactionStartOfRange.toISOString())
+            .neq("status", "Voided"),
+          supabaseClient
+            .from("transactions")
+            .select("id")
+            .gte("created_at", startOfMonth.toISOString())
+            .neq("status", "Voided"),
         ])
 
         // Today's sales
@@ -83,38 +133,127 @@ export default function DashboardPage() {
         setPendingAr(pending)
 
         // Build sales chart data
-        const dayCount = viewType === "weekly" ? 7 : 30
-        const labels = Array.from({ length: dayCount }).map((_, index) => {
-          const date = new Date(startOfRange)
-          date.setDate(startOfRange.getDate() + index)
-          const dateKey = date.toISOString().slice(0, 10)
-          if (viewType === "weekly") {
+        let chartData: SalesDataPoint[] = []
+        if (salesViewType === "weekly") {
+          const dayCount = 7
+          const labels = Array.from({ length: dayCount }).map((_, index) => {
+            const date = new Date(salesStartOfRange)
+            date.setDate(salesStartOfRange.getDate() + index)
             return date.toLocaleDateString("en-US", { weekday: "short" })
-          } else {
-            return dateKey
-          }
-        })
+          })
 
-        const dailyMap = new Map<string, number>()
-        Array.from({ length: dayCount }).forEach((_, index) => {
-          const date = new Date(startOfRange)
-          date.setDate(startOfRange.getDate() + index)
-          const dateKey = date.toISOString().slice(0, 10)
-          dailyMap.set(dateKey, 0)
-        })
+          const dailyMap = new Map<string, number>()
+          Array.from({ length: dayCount }).forEach((_, index) => {
+            const date = new Date(salesStartOfRange)
+            date.setDate(salesStartOfRange.getDate() + index)
+            const dateKey = toLocalDateKey(date)
+            dailyMap.set(dateKey, 0)
+          })
 
-        ;(rangeRows ?? []).forEach((row) => {
-          const dayKey = row.created_at?.slice(0, 10)
-          if (dayKey && dailyMap.has(dayKey)) {
-            dailyMap.set(dayKey, (dailyMap.get(dayKey) ?? 0) + Number(row.net_amount ?? 0))
-          }
-        })
+          ;(salesRangeRows ?? []).forEach((row) => {
+            const createdAt = row.created_at ? new Date(row.created_at) : null
+            const dayKey = createdAt ? toLocalDateKey(createdAt) : null
+            if (dayKey && dailyMap.has(dayKey)) {
+              dailyMap.set(dayKey, (dailyMap.get(dayKey) ?? 0) + Number(row.net_amount ?? 0))
+            }
+          })
 
-        const chartData = Array.from(dailyMap.entries()).map(([_, amount], index) => ({
-          label: labels[index],
-          amount,
-        }))
+          chartData = Array.from(dailyMap.entries()).map(([_, amount], index) => ({
+            label: labels[index],
+            amount,
+          }))
+        } else {
+          const monthCount = 12
+          const monthSlots = Array.from({ length: monthCount }).map((_, index) => {
+            const date = new Date(salesStartOfRange.getFullYear(), index, 1)
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+            const label = date.toLocaleDateString("en-US", { month: "short" })
+            return { monthKey, label }
+          })
+
+          const monthlyMap = new Map<string, number>()
+          monthSlots.forEach(({ monthKey }) => {
+            monthlyMap.set(monthKey, 0)
+          })
+
+          ;(salesRangeRows ?? []).forEach((row) => {
+            const createdAt = row.created_at ? new Date(row.created_at) : null
+            if (!createdAt || Number.isNaN(createdAt.getTime())) return
+
+            const monthKey = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, "0")}`
+            if (monthlyMap.has(monthKey)) {
+              monthlyMap.set(monthKey, (monthlyMap.get(monthKey) ?? 0) + Number(row.net_amount ?? 0))
+            }
+          })
+
+          chartData = monthSlots.map(({ monthKey, label }) => ({
+            label,
+            amount: monthlyMap.get(monthKey) ?? 0,
+          }))
+        }
         setSalesData(chartData)
+
+        // Build transaction chart data (independent view type)
+        let txData: TransactionDataPoint[] = []
+        if (transactionViewType === "weekly") {
+          const dayCount = 7
+          const labels = Array.from({ length: dayCount }).map((_, index) => {
+            const date = new Date(transactionStartOfRange)
+            date.setDate(transactionStartOfRange.getDate() + index)
+            return date.toLocaleDateString("en-US", { weekday: "short" })
+          })
+
+          const transactionCountMap = new Map<string, number>()
+          Array.from({ length: dayCount }).forEach((_, index) => {
+            const date = new Date(transactionStartOfRange)
+            date.setDate(transactionStartOfRange.getDate() + index)
+            transactionCountMap.set(toLocalDateKey(date), 0)
+          })
+
+          ;(transactionRangeRows ?? []).forEach((row) => {
+            const createdAt = row.created_at ? new Date(row.created_at) : null
+            const dayKey = createdAt ? toLocalDateKey(createdAt) : null
+            if (dayKey && transactionCountMap.has(dayKey)) {
+              transactionCountMap.set(dayKey, (transactionCountMap.get(dayKey) ?? 0) + 1)
+            }
+          })
+
+          txData = Array.from(transactionCountMap.entries()).map(([_, count], index) => ({
+            label: labels[index],
+            count,
+          }))
+        } else {
+          const monthCount = 12
+          const monthSlots = Array.from({ length: monthCount }).map((_, index) => {
+            const date = new Date(transactionStartOfRange.getFullYear(), index, 1)
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+            const label = date.toLocaleDateString("en-US", { month: "short" })
+            return { monthKey, label }
+          })
+
+          const monthlyTransactionCountMap = new Map<string, number>()
+          monthSlots.forEach(({ monthKey }) => {
+            monthlyTransactionCountMap.set(monthKey, 0)
+          })
+
+          ;(transactionRangeRows ?? []).forEach((row) => {
+            const createdAt = row.created_at ? new Date(row.created_at) : null
+            if (!createdAt || Number.isNaN(createdAt.getTime())) return
+            const monthKey = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, "0")}`
+            if (monthlyTransactionCountMap.has(monthKey)) {
+              monthlyTransactionCountMap.set(
+                monthKey,
+                (monthlyTransactionCountMap.get(monthKey) ?? 0) + 1,
+              )
+            }
+          })
+
+          txData = monthSlots.map(({ monthKey, label }) => ({
+            label,
+            count: monthlyTransactionCountMap.get(monthKey) ?? 0,
+          }))
+        }
+        setTransactionData(txData)
 
         // Staff commissions
         const staffTotals = new Map<string, number>()
@@ -149,6 +288,36 @@ export default function DashboardPage() {
         )
         setMonthCommissions(monthComm)
 
+        const paymentMethods: PaymentMethodDataPoint["method"][] = [
+          "Cash",
+          "GCash",
+          "Maya",
+          "Card",
+          "BankTransfer",
+          "HomeCredit",
+        ]
+        const monthTxIds = (monthTxRows ?? []).map((row) => row.id)
+        const { data: paymentRows } = monthTxIds.length
+          ? await supabaseClient
+              .from("transaction_payments")
+              .select("method")
+              .in("transaction_id", monthTxIds)
+          : { data: [] as Array<{ method: PaymentMethodDataPoint["method"] | null }> }
+        const paymentCountMap = new Map<PaymentMethodDataPoint["method"], number>()
+        paymentMethods.forEach((method) => paymentCountMap.set(method, 0))
+        ;(paymentRows ?? []).forEach((row) => {
+          const method = row.method as PaymentMethodDataPoint["method"] | null
+          if (method && paymentCountMap.has(method)) {
+            paymentCountMap.set(method, (paymentCountMap.get(method) ?? 0) + 1)
+          }
+        })
+        setPaymentMethodData(
+          paymentMethods.map((method) => ({
+            method,
+            count: paymentCountMap.get(method) ?? 0,
+          })),
+        )
+
         // Recent transactions
         setRecentTransactions(
           (recentRows ?? []).map((row) => ({
@@ -167,7 +336,7 @@ export default function DashboardPage() {
     }
 
     void loadDashboard()
-  }, [viewType])
+  }, [salesViewType, transactionViewType])
 
   if (loading) {
     return (
@@ -185,17 +354,6 @@ export default function DashboardPage() {
             <h2 className="text-3xl font-bold text-[#1f2918]">Dashboard</h2>
             <p className="mt-1 text-[#6a6358]">Live performance snapshot</p>
           </div>
-          <div>
-            <select
-              value={viewType}
-              onChange={(e) => setViewType(e.target.value as "weekly" | "monthly")}
-              className="rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-sm font-medium text-[#314031] hover:border-[#b8b0a0]"
-              aria-label="Chart view"
-            >
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -207,19 +365,30 @@ export default function DashboardPage() {
             tone={pendingAr > 0 ? "warning" : "default"}
           />
           <KpiCard
-            title="Month Commissions"
+            title="Total Commissions This Month"
             value={formatCurrency(monthCommissions)}
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
           <div className="xl:col-span-2">
-            <SalesChart data={salesData} />
+            <SalesChart
+              data={salesData}
+              viewType={salesViewType}
+              onViewTypeChange={setSalesViewType}
+            />
           </div>
           <div className="space-y-4">
             <StaffCommissionsWidget rows={topStaffCommissions} />
+            <PaymentMethodsChart data={paymentMethodData} />
           </div>
         </div>
+
+        <TransactionChart
+          data={transactionData}
+          viewType={transactionViewType}
+          onViewTypeChange={setTransactionViewType}
+        />
 
         <RecentTransactions rows={recentTransactions} />
       </div>
