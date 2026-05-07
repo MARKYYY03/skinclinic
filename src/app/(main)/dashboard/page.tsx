@@ -441,12 +441,18 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-2 space-y-4">
             <SalesChart
               data={salesData}
               viewType={salesViewType}
               onViewTypeChange={setSalesViewType}
             />
+            <TransactionChart
+              data={transactionData}
+              viewType={transactionViewType}
+              onViewTypeChange={setTransactionViewType}
+            />
+            <RecentTransactions rows={recentTransactions} />
           </div>
           <div className="space-y-4">
             <StaffCommissionsWidget rows={topStaffCommissions} />
@@ -454,14 +460,6 @@ export default function DashboardPage() {
             <ServicesChart data={serviceData} />
           </div>
         </div>
-
-        <TransactionChart
-          data={transactionData}
-          viewType={transactionViewType}
-          onViewTypeChange={setTransactionViewType}
-        />
-
-        <RecentTransactions rows={recentTransactions} />
       </div>
     </PageWrapper>
   )
