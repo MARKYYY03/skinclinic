@@ -14,6 +14,11 @@ export interface TransactionItem {
   unitPrice: number
   discount: number
   total: number
+  /** Set when redeeming a package session (real `client_packages.id`). */
+  clientPackageId?: string | null
+  isPackageRedemption?: boolean
+  /** Original unit price before package redemption toggle (for UI). */
+  baseUnitPrice?: number
 }
 
 export interface TransactionPayment {
@@ -30,7 +35,10 @@ export interface Transaction {
   totalAmount: number
   discountTotal: number
   netAmount: number
+  amountPaid: number
+  balanceDue: number
   staffIds: string[]
+  staffNames?: string[]
   notes?: string
   status: "Completed" | "Partial" | "Voided"
   createdBy: string

@@ -1,5 +1,5 @@
 import { formatCurrency } from "@/lib/utils"
-import { ProfitLossRow } from "@/lib/mock/reports"
+import { ProfitLossRow } from "@/types/reports"
 
 interface ProfitLossTableProps {
   rows: ProfitLossRow[]

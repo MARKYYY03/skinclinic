@@ -1,16 +1,58 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import PageWrapper from "@/components/layout/PageWrapper"
 import AdjustmentForm from "@/components/inventory/AdjustmentForm"
-import { mockInventoryLogs, mockInventoryProducts } from "@/lib/mock/inventory"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { InventoryLog } from "@/types/inventory"
 import { Product } from "@/types/product"
 
 export default function InventoryAdjustmentsPage() {
-  const [products, setProducts] = useState<Product[]>(mockInventoryProducts)
-  const [logs, setLogs] = useState<InventoryLog[]>(mockInventoryLogs)
+  const [products, setProducts] = useState<Product[]>([])
+  const [logs, setLogs] = useState<InventoryLog[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const [{ data: productRows }, { data: logRows }] = await Promise.all([
+        supabaseClient
+          .from("products")
+          .select("id, name, sku, selling_price, cost_price, stock_quantity, low_stock_threshold, expiration_date, supplier"),
+        supabaseClient
+          .from("inventory_logs")
+          .select("id, product_id, adjustment_type, quantity, reason, created_at, recorded_by")
+          .order("created_at", { ascending: false }),
+      ])
+      const mappedProducts: Product[] = (productRows ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        sku: row.sku ?? undefined,
+        sellingPrice: Number(row.selling_price ?? 0),
+        costPrice: Number(row.cost_price ?? 0),
+        stockQuantity: row.stock_quantity,
+        lowStockThreshold: row.low_stock_threshold,
+        expirationDate: row.expiration_date ?? undefined,
+        supplier: row.supplier ?? undefined,
+      }))
+      const mappedLogs: InventoryLog[] = (logRows ?? []).map((row) => ({
+        id: row.id,
+        productId: row.product_id,
+        type: row.adjustment_type,
+        quantity: Number(row.quantity ?? 0),
+        reason: row.reason ?? undefined,
+        date: row.created_at,
+        recordedBy: row.recorded_by ?? "System",
+      }))
+      if (!cancelled) {
+        setProducts(mappedProducts)
+        setLogs(mappedLogs)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const recentLogs = useMemo(
     () =>
@@ -20,33 +62,39 @@ export default function InventoryAdjustmentsPage() {
     [logs],
   )
 
-  const handleAdjustmentSubmit = ({
+  const handleAdjustmentSubmit = async ({
     productId,
     type,
     quantity,
     reason,
   }: Omit<InventoryLog, "id" | "date" | "recordedBy">) => {
+    const current = products.find((p) => p.id === productId)
+    if (!current) return
+    const stockBefore = current.stockQuantity
+    const delta = type === "StockIn" ? quantity : -quantity
+    const stockAfter = Math.max(0, stockBefore + delta)
+
+    await supabaseClient.from("inventory_logs").insert({
+      product_id: productId,
+      adjustment_type: type,
+      quantity: delta,
+      reason: reason ?? null,
+      stock_before: stockBefore,
+      stock_after: stockAfter,
+    })
+
     setProducts((prev) =>
-      prev.map((product) => {
-        if (product.id !== productId) return product
-        const nextQuantity =
-          type === "StockIn"
-            ? product.stockQuantity + quantity
-            : Math.max(0, product.stockQuantity - quantity)
-
-        return { ...product, stockQuantity: nextQuantity }
-      }),
+      prev.map((product) => (product.id === productId ? { ...product, stockQuantity: stockAfter } : product)),
     )
-
     setLogs((prev) => [
       {
         id: `log-${Date.now()}`,
         productId,
         type,
-        quantity,
+        quantity: delta,
         reason,
         date: new Date().toISOString(),
-        recordedBy: "Admin User",
+        recordedBy: "System",
       },
       ...prev,
     ])

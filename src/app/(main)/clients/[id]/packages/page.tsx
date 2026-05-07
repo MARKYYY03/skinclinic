@@ -1,20 +1,89 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import PageWrapper from "@/components/layout/PageWrapper"
 import SessionProgressBar from "@/components/packages/SessionProgressBar"
-import { mockClientPackages, mockPackageTemplates } from "@/lib/mock/phase6"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
+import { ClientPackage, ServicePackage } from "@/types/package"
 
 export default function ClientPackagesPage() {
   const params = useParams()
   const clientId = params.id as string
   const [selectedTemplateId, setSelectedTemplateId] = useState("")
+  const [clientPackages, setClientPackages] = useState<ClientPackage[]>([])
+  const [packageTemplates, setPackageTemplates] = useState<ServicePackage[]>([])
 
-  const clientPackages = useMemo(
-    () => mockClientPackages.filter((entry) => entry.clientId === clientId),
-    [clientId],
+  const selectedTemplate = useMemo(
+    () => packageTemplates.find((entry) => entry.id === selectedTemplateId),
+    [packageTemplates, selectedTemplateId],
   )
+
+  const loadData = useCallback(async () => {
+    const [{ data: templates }, { data: assigned }] = await Promise.all([
+      supabaseClient
+        .from("service_packages")
+        .select("id, name, service_id, session_count, price, validity_days")
+        .order("name"),
+      supabaseClient
+        .from("client_packages")
+        .select("id, client_id, package_id, package_name, total_sessions, sessions_used, sessions_remaining, purchased_at, expires_at, is_transferable, transferred_to_client")
+        .eq("client_id", clientId)
+        .order("purchased_at", { ascending: false }),
+    ])
+    setPackageTemplates(
+      (templates ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        serviceId: row.service_id,
+        sessionCount: row.session_count,
+        price: Number(row.price ?? 0),
+        validityDays: row.validity_days,
+      })),
+    )
+    setClientPackages(
+      (assigned ?? []).map((row) => ({
+        id: row.id,
+        clientId: row.client_id,
+        packageId: row.package_id,
+        packageName: row.package_name,
+        totalSessions: row.total_sessions,
+        sessionsUsed: row.sessions_used,
+        sessionsRemaining: row.sessions_remaining,
+        purchasedAt: row.purchased_at,
+        expiresAt: row.expires_at,
+        isTransferable: row.is_transferable,
+        transferredToClientId: row.transferred_to_client ?? undefined,
+      })),
+    )
+  }, [clientId])
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void loadData()
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [clientId, loadData])
+
+  async function assignPackage() {
+    if (!selectedTemplate) return
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + selectedTemplate.validityDays * 24 * 60 * 60 * 1000)
+    await supabaseClient.from("client_packages").insert({
+      client_id: clientId,
+      package_id: selectedTemplate.id,
+      package_name: selectedTemplate.name,
+      service_name: selectedTemplate.name,
+      total_sessions: selectedTemplate.sessionCount,
+      sessions_used: 0,
+      price_paid: selectedTemplate.price,
+      purchased_at: now.toISOString(),
+      expires_at: expiresAt.toISOString(),
+      is_transferable: true,
+    })
+    setSelectedTemplateId("")
+    await loadData()
+  }
 
   return (
     <PageWrapper>
@@ -37,7 +106,7 @@ export default function ClientPackagesPage() {
               title="Package template selector"
             >
               <option value="">Select template</option>
-              {mockPackageTemplates.map((pkg) => (
+              {packageTemplates.map((pkg) => (
                 <option key={pkg.id} value={pkg.id}>
                   {pkg.name}
                 </option>
@@ -46,14 +115,12 @@ export default function ClientPackagesPage() {
             <button
               type="button"
               disabled={!selectedTemplateId}
+              onClick={() => void assignPackage()}
               className="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
             >
               Assign to Client
             </button>
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            Assignment is UI-ready; connect API to persist.
-          </p>
         </div>
 
         <div className="rounded-lg bg-white p-5 shadow">

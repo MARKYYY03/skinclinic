@@ -1,8 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+
+import type { NavItem } from "@/lib/constants"
 import { NAVIGATION_ITEMS } from "@/lib/constants"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { UserRole } from "@/types/user"
 import {
   Archive,
@@ -10,6 +13,7 @@ import {
   DollarSign,
   Gift,
   LayoutDashboard,
+  LogOut,
   Package,
   Receipt,
   Scissors,
@@ -18,8 +22,10 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react"
+import { useCallback } from "react"
 
 interface SidebarProps {
+  userName?: string
   userRole?: UserRole
   isCollapsed?: boolean
   onToggle?: () => void
@@ -39,57 +45,129 @@ const iconMap: Record<string, LucideIcon> = {
   Settings,
 }
 
+const oliveActive = "bg-[#6B7A3E] text-[#F5F0E8]"
+const inactive = "text-[#314031] hover:bg-[#ebe6dd]"
+
+function linkActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
 export default function Sidebar({
+  userName = "User",
   userRole = "Staff",
   isCollapsed = false,
   onToggle,
 }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
 
-  // Filter navigation items based on user role
-  const visibleItems = NAVIGATION_ITEMS.filter((item) => 
-    (item.roles as readonly string[]).includes(userRole)
+  const visibleItems = NAVIGATION_ITEMS.filter((item: NavItem) =>
+    item.roles.includes(userRole),
   )
+
+  const logout = useCallback(async () => {
+    await supabaseClient.auth.signOut()
+    router.replace("/login")
+  }, [router])
 
   return (
     <div
-      className={`sticky top-0 h-screen border-r border-[#d8ddd5] bg-[#f7f8f6] text-[#243225] transition-all duration-300 ${
+      className={`sticky top-0 flex h-screen flex-col border-r border-[#dfd8cf] bg-[#F5F0E8] text-[#1f2918] transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
       }`}
     >
-      {/* Header */}
-      <div className="border-b border-[#d8ddd5] p-4">
+      <div className="border-b border-[#dfd8cf] p-4">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div>
-              <h1 className="text-lg font-bold text-[#2f7d32]">Relevare</h1>
-              <p className="text-[11px] text-[#7d8f7d]">Clinic Management System</p>
+              <h1 className="text-lg font-bold text-[#6B7A3E]">Relevare</h1>
+              <p className="text-[11px] text-[#6a6358]">
+                Clinic Management System
+              </p>
             </div>
           )}
-          <button onClick={onToggle} className="rounded p-1 hover:bg-[#e7ece5]">
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="rounded p-1 hover:bg-[#ebe6dd]"
+          >
             {isCollapsed ? "→" : "←"}
           </button>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="p-3">
+      <nav className="flex-1 overflow-y-auto p-3">
         <ul className="space-y-1">
           {visibleItems.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/")
             const Icon = iconMap[item.icon] ?? LayoutDashboard
+
+            if (item.children?.length) {
+              const childActive = item.children.some((c) =>
+                linkActive(pathname, c.href),
+              )
+              const firstReportHref = item.children[0]?.href ?? "/reports/sales"
+
+              if (isCollapsed) {
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={firstReportHref}
+                      title="Reports"
+                      className={`flex items-center justify-center rounded-md px-3 py-2 text-sm transition-colors ${
+                        childActive ? oliveActive : inactive
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="sr-only">Reports</span>
+                    </Link>
+                  </li>
+                )
+              }
+
+              return (
+                <li key={item.name}>
+                  <div
+                    className={`flex items-center rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase ${
+                      childActive ? "text-[#6B7A3E]" : "text-[#6a6358]"
+                    }`}
+                  >
+                    <Icon className="mr-2 h-4 w-4 shrink-0" />
+                    {item.name}
+                  </div>
+                  <ul className="mt-0.5 space-y-0.5 border-l border-[#cfc6ba] py-1 pl-2 ml-6">
+                    {item.children.map((child) => {
+                      const active = linkActive(pathname, child.href)
+                      return (
+                        <li key={child.href}>
+                          <Link
+                            href={child.href}
+                            className={`flex rounded-md px-3 py-1.5 text-sm ${
+                              active ? oliveActive : inactive
+                            }`}
+                          >
+                            {child.name}
+                          </Link>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </li>
+              )
+            }
+
+            const href = item.href!
+            const isActive = linkActive(pathname, href)
+
             return (
-              <li key={item.href}>
+              <li key={href}>
                 <Link
-                  href={item.href}
+                  href={href}
                   className={`flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
-                    isActive
-                      ? "bg-[#2f7d32] text-white"
-                      : "text-[#2f3b2f] hover:bg-[#e7ece5]"
+                    isActive ? oliveActive : inactive
                   }`}
                 >
-                  <Icon className="mr-2 h-4 w-4" />
+                  <Icon className="mr-2 h-4 w-4 shrink-0" />
                   {!isCollapsed && <span>{item.name}</span>}
                 </Link>
               </li>
@@ -98,19 +176,28 @@ export default function Sidebar({
         </ul>
       </nav>
 
-      {/* User Info */}
-      <div className="absolute right-0 bottom-0 left-0 border-t border-[#d8ddd5] p-4">
+      <div className="border-t border-[#dfd8cf] p-4">
         <div className="flex items-center">
-          <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#dfe6dc] text-[#314031]">
-            U
+          <div className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e3ddd3] text-sm text-[#314031]">
+            {userName.trim().slice(0, 1).toUpperCase() || "U"}
           </div>
           {!isCollapsed && (
-            <div className="flex-1">
-              <p className="text-sm font-medium text-[#2f3b2f]">User Name</p>
-              <p className="text-xs text-[#7d8f7d]">{userRole}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-[#1f2918]">
+                {userName}
+              </p>
+              <p className="text-xs text-[#6a6358]">{userRole}</p>
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={logout}
+          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#6B7A3E] bg-white px-3 py-2 text-sm font-medium text-[#6B7A3E] hover:bg-[#ebe6dd]`}
+        >
+          <LogOut className="h-4 w-4" />
+          {!isCollapsed ? "Logout" : <span className="sr-only">Logout</span>}
+        </button>
       </div>
     </div>
   )

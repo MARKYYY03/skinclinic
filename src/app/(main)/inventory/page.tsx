@@ -1,19 +1,67 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import PageWrapper from "@/components/layout/PageWrapper"
 import StockTable from "@/components/inventory/StockTable"
-import { mockInventoryLogs, mockInventoryProducts } from "@/lib/mock/inventory"
+import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { InventoryLog } from "@/types/inventory"
 import { Product } from "@/types/product"
 
 export default function InventoryPage() {
-  const [products] = useState<Product[]>(mockInventoryProducts)
-  const [logs] = useState<InventoryLog[]>(mockInventoryLogs)
+  const [products, setProducts] = useState<Product[]>([])
+  const [logs, setLogs] = useState<InventoryLog[]>([])
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    products[0]?.id ?? null,
+    null,
   )
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const [{ data: productRows }, { data: logRows }] = await Promise.all([
+        supabaseClient
+          .from("products")
+          .select("id, name, sku, selling_price, cost_price, stock_quantity, low_stock_threshold, expiration_date, supplier"),
+        supabaseClient
+          .from("inventory_logs")
+          .select("id, product_id, adjustment_type, quantity, reason, created_at, recorded_by")
+          .order("created_at", { ascending: false }),
+      ])
+      const recorderIds = Array.from(new Set((logRows ?? []).map((row) => row.recorded_by).filter(Boolean)))
+      const { data: profiles } = recorderIds.length
+        ? await supabaseClient.from("profiles").select("id, full_name").in("id", recorderIds as string[])
+        : { data: [] as Array<{ id: string; full_name: string }> }
+      const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]))
+
+      if (cancelled) return
+      const mappedProducts: Product[] = (productRows ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        sku: row.sku ?? undefined,
+        sellingPrice: Number(row.selling_price ?? 0),
+        costPrice: Number(row.cost_price ?? 0),
+        stockQuantity: row.stock_quantity,
+        lowStockThreshold: row.low_stock_threshold,
+        expirationDate: row.expiration_date ?? undefined,
+        supplier: row.supplier ?? undefined,
+      }))
+      const mappedLogs: InventoryLog[] = (logRows ?? []).map((row) => ({
+        id: row.id,
+        productId: row.product_id,
+        type: row.adjustment_type,
+        quantity: Number(row.quantity ?? 0),
+        reason: row.reason ?? undefined,
+        date: row.created_at,
+        recordedBy: row.recorded_by ? nameById.get(row.recorded_by) ?? "Unknown" : "System",
+      }))
+      setProducts(mappedProducts)
+      setLogs(mappedLogs)
+      setSelectedProductId(mappedProducts[0]?.id ?? null)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const selectedProduct = useMemo(
     () => products.find((product) => product.id === selectedProductId) ?? null,

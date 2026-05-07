@@ -33,7 +33,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
     user: data.user
       ? {
           id: data.user.id,
-          email: data.user.email,
+          email: data.user.email ?? null,
         }
       : null,
   };
