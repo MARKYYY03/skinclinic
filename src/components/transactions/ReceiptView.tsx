@@ -16,6 +16,14 @@ export default function ReceiptView({
   voiding = false,
   onVoid,
 }: ReceiptViewProps) {
+  const paymentTypes = Array.from(new Set(transaction.payments.map((payment) => payment.method)))
+  const paymentTypeLabel =
+    paymentTypes.length > 0
+      ? paymentTypes.join(", ")
+      : transaction.amountPaid > 0
+        ? "Recorded payment (type not specified)"
+        : "—"
+
   const staffLine =
     transaction.staffNames?.filter(Boolean).join(", ") ||
     (transaction.staffIds?.length
@@ -90,6 +98,10 @@ export default function ReceiptView({
             {transaction.status}
           </span>
         </p>
+        <p>
+          <span className="font-medium text-[#314031]">Payment type(s):</span>{" "}
+          <span className="text-[#1f2918]">{paymentTypeLabel}</span>
+        </p>
       </div>
 
       <div className="mb-6 overflow-x-auto">
@@ -156,6 +168,16 @@ export default function ReceiptView({
                 <span>{formatCurrency(payment.amount)}</span>
               </div>
             ))
+          ) : transaction.amountPaid > 0 ? (
+            <>
+              <div className="flex justify-between">
+                <span>Recorded payment</span>
+                <span>{formatCurrency(transaction.amountPaid)}</span>
+              </div>
+              <p className="text-xs text-[#6a6358]">
+                This transaction has no split payment rows in `transaction_payments`.
+              </p>
+            </>
           ) : (
             <p className="text-[#6a6358]">No payment rows</p>
           )}
