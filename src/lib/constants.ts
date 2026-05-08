@@ -103,6 +103,9 @@ export const NAVIGATION_ITEMS: readonly NavItem[] = [
     roles: ["Owner", "Admin"],
     children: [
       { name: "Sales", href: "/reports/sales" },
+      { name: "Expenses", href: "/reports/expenses" },
+      { name: "Profit & Loss", href: "/reports/profit-loss" },
+      { name: "Inventory", href: "/reports/inventory" },
       { name: "Commissions", href: "/reports/commissions" },
     ],
   },
