@@ -22,14 +22,18 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react"
-import { useCallback } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+
+import ImageModal from "@/components/ImageModal"
 
 interface SidebarProps {
   userName?: string
   userRole?: UserRole
   isCollapsed?: boolean
   onToggle?: () => void
+  userId?: string
 }
+
 
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -57,6 +61,7 @@ export default function Sidebar({
   userRole = "Staff",
   isCollapsed = false,
   onToggle,
+  userId,
 }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -65,10 +70,21 @@ export default function Sidebar({
     item.roles.includes(userRole),
   )
 
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  const [showImageModal, setShowImageModal] = useState(false)
+
+  useEffect(() => {
+    if (!userId) return
+    const savedPhoto = localStorage.getItem(`avatar_${userId}`)
+    if (savedPhoto) setUserAvatar(savedPhoto)
+    else setUserAvatar(null)
+  }, [userId])
+
   const logout = useCallback(async () => {
     await supabaseClient.auth.signOut()
     router.replace("/login")
   }, [router])
+
 
   return (
     <div
@@ -178,9 +194,24 @@ export default function Sidebar({
 
       <div className="border-t border-[#dfd8cf] p-4">
         <div className="flex items-center">
-          <div className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e3ddd3] text-sm text-[#314031]">
-            {userName.trim().slice(0, 1).toUpperCase() || "U"}
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowImageModal(true)}
+            aria-label="View profile photo"
+            className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e3ddd3] text-sm text-[#314031] overflow-hidden border-2 border-transparent hover:border-[#cfd4b8]"
+          >
+            {userAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={userAvatar}
+                alt={userName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              userName.trim().slice(0, 1).toUpperCase() || "U"
+            )}
+          </button>
+
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-[#1f2918]">
@@ -190,6 +221,7 @@ export default function Sidebar({
             </div>
           )}
         </div>
+
         <button
           type="button"
           onClick={logout}
@@ -198,7 +230,17 @@ export default function Sidebar({
           <LogOut className="h-4 w-4" />
           {!isCollapsed ? "Logout" : <span className="sr-only">Logout</span>}
         </button>
+
+        {userAvatar && (
+          <ImageModal
+            isOpen={showImageModal}
+            imageUrl={userAvatar}
+            userName={userName}
+            onClose={() => setShowImageModal(false)}
+          />
+        )}
       </div>
+
     </div>
   )
 }

@@ -85,6 +85,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <Sidebar
           userName={userName}
           userRole={userRole}
+          userId={userId}
           isCollapsed={sidebarCollapsed}
           onToggle={toggleSidebar}
         />
@@ -92,7 +93,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* Main Content */}
         <div className="flex flex-1 flex-col">
           {/* Header */}
-          <Header userName={userName} userRole={userRole} onToggleSidebar={toggleSidebar} />
+          <Header userName={userName} userRole={userRole} userId={userId} onToggleSidebar={toggleSidebar} />
 
           {/* Page Content */}
           <main className="flex-1 overflow-auto">{children}</main>
