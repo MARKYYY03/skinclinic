@@ -31,7 +31,7 @@ export default function ReceiptView({
       : "—")
 
   return (
-    <div className="rounded-xl border border-[#dfd8cf] bg-white p-6 shadow-sm print:border-0 print:shadow-none">
+    <div className="rounded-xl border border-[#dfd8cf] bg-white p-6 shadow-sm print:border-0 print:shadow-none print:rounded-none print:p-0 print:bg-transparent">
       <div className="mb-6 flex flex-col gap-4 border-b border-[#e5ded4] pb-4 print:hidden">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

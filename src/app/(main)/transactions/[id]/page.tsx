@@ -131,7 +131,7 @@ export default function TransactionDetailPage() {
 
   return (
     <PageWrapper>
-      <div className="mb-4">
+      <div className="mb-4 print:hidden">
         <Link
           href="/transactions"
           className="text-sm font-medium text-[#6B7A3E] hover:text-[#5a6734]"
