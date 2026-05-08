@@ -30,6 +30,7 @@ export const INVENTORY_ADJUSTMENT_TYPES = [
 export type NavChildItem = {
   readonly name: string
   readonly href: string
+  readonly roles?: readonly string[]
 }
 
 export type NavItem = {
@@ -111,8 +112,8 @@ export const NAVIGATION_ITEMS: readonly NavItem[] = [
     roles: ["Owner", "Admin", "Cashier", "Staff"],
     children: [
       { name: "Profile", href: "/settings/profile" },
-      { name: "Users", href: "/settings/users" },
-      { name: "Audit Log", href: "/settings/audit-log" },
+      { name: "Users", href: "/settings/users", roles: ["Owner", "Admin"] },
+      { name: "Audit Log", href: "/settings/audit-log", roles: ["Owner", "Admin"] },
     ],
   },
 ]
