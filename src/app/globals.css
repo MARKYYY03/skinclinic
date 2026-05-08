@@ -127,3 +127,39 @@
     @apply font-sans;
     }
 }
+
+/* Print styles */
+@media print {
+  /* Hide sidebar and header when printing */
+  nav,
+  header,
+  [class*="Sidebar"],
+  [class*="Header"],
+  .sidebar,
+  .header {
+    display: none !important;
+  }
+
+  /* Make main content full width and remove padding */
+  body,
+  main {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  /* Remove extra spacing and shadows */
+  [class*="PageWrapper"],
+  .page-wrapper {
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Ensure receipt is visible and properly sized */
+  .print\:border-0,
+  .print\:shadow-none {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
