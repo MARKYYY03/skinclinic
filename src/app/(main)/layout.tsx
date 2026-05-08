@@ -80,23 +80,27 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <CurrentUserProvider value={{ userId, fullName: userName, role: userRole }}>
-      <div className="flex h-screen bg-[#f3f5f2]">
+      <div className="flex h-screen bg-[#f3f5f2] print:block print:h-auto print:bg-white">
         {/* Sidebar */}
-        <Sidebar
-          userName={userName}
-          userRole={userRole}
-          userId={userId}
-          isCollapsed={sidebarCollapsed}
-          onToggle={toggleSidebar}
-        />
+        <div className="print:hidden">
+          <Sidebar
+            userName={userName}
+            userRole={userRole}
+            userId={userId}
+            isCollapsed={sidebarCollapsed}
+            onToggle={toggleSidebar}
+          />
+        </div>
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col print:flex-none">
           {/* Header */}
-          <Header userName={userName} userRole={userRole} userId={userId} onToggleSidebar={toggleSidebar} />
+          <div className="print:hidden">
+            <Header userName={userName} userRole={userRole} userId={userId} onToggleSidebar={toggleSidebar} />
+          </div>
 
           {/* Page Content */}
-          <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto print:flex-none print:overflow-visible">{children}</main>
         </div>
       </div>
     </CurrentUserProvider>
