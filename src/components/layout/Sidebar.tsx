@@ -152,7 +152,9 @@ export default function Sidebar({
                     {item.name}
                   </div>
                   <ul className="mt-0.5 space-y-0.5 border-l border-[#cfc6ba] py-1 pl-2 ml-6">
-                    {item.children.map((child) => {
+                    {item.children
+                      .filter((child) => !child.roles || child.roles.includes(userRole))
+                      .map((child) => {
                       const active = linkActive(pathname, child.href)
                       return (
                         <li key={child.href}>
