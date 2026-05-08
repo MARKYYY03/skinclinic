@@ -7,6 +7,7 @@ import ProductForm from "@/components/inventory/ProductForm"
 import { getProducts } from "@/lib/actions/inventory"
 import type { Product } from "@/types/product"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 interface FilterState {
   search: string
@@ -22,6 +23,8 @@ export default function InventoryPage() {
     status: "all",
   })
   const [showAddModal, setShowAddModal] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     loadProducts()
@@ -84,6 +87,19 @@ export default function InventoryPage() {
       return true
     })
   }, [products, filters])
+
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [filters])
 
   // Summary stats
   const stats = useMemo(() => {
@@ -219,44 +235,45 @@ export default function InventoryPage() {
             <p className="text-gray-600">No products found</p>
           </div>
         ) : (
-          <div className="rounded-lg bg-white shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Product Name
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    SKU
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Supplier
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                    Cost Price
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                    Selling Price
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                    Stock
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Threshold
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Expiration
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredProducts.map((product) => {
+          <div className="space-y-0 rounded-lg bg-white shadow overflow-hidden">
+            <div className="overflow-x-auto rounded-b-none">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Product Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      SKU
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Supplier
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                      Cost Price
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                      Selling Price
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                      Stock
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Threshold
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Expiration
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {paginatedProducts.map((product) => {
                   const today = new Date()
                   const expiryDate = product.expirationDate
                     ? new Date(product.expirationDate)
@@ -348,6 +365,18 @@ export default function InventoryPage() {
                 })}
               </tbody>
             </table>
+            </div>
+            <DataPaginator
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={filteredProducts.length}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size)
+                setPage(1)
+              }}
+            />
           </div>
         )}
       </div>
