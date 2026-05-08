@@ -110,7 +110,7 @@ export default function AuditLogPage() {
         <select
           value={actionFilter}
           onChange={(event) => setActionFilter(event.target.value)}
-          className="rounded border border-gray-300 px-3 py-2"
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-[#1f2918] focus:border-[#6B7A3E] focus:ring-2 focus:ring-[#6B7A3E] focus:outline-none"
           aria-label="Filter audit logs by action"
           title="Audit action filter"
         >
@@ -124,7 +124,7 @@ export default function AuditLogPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search user or entity"
-          className="rounded border border-gray-300 px-3 py-2"
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-[#1f2918] focus:border-[#6B7A3E] focus:ring-2 focus:ring-[#6B7A3E] focus:outline-none"
         />
       </div>
       {loading ? (

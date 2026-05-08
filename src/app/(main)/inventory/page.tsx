@@ -1,158 +1,367 @@
 "use client"
 
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
 import PageWrapper from "@/components/layout/PageWrapper"
-import StockTable from "@/components/inventory/StockTable"
-import { supabaseClient } from "@/lib/supabase/supabase-client"
-import { InventoryLog } from "@/types/inventory"
-import { Product } from "@/types/product"
+import ProductForm from "@/components/inventory/ProductForm"
+import { getProducts } from "@/lib/actions/inventory"
+import type { Product } from "@/types/product"
+import { formatCurrency, formatDate } from "@/lib/utils"
+
+interface FilterState {
+  search: string
+  status: "all" | "low-stock" | "expiring-soon" | "expired"
+  supplier?: string
+}
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([])
-  const [logs, setLogs] = useState<InventoryLog[]>([])
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    null,
-  )
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    status: "all",
+  })
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      const [{ data: productRows }, { data: logRows }] = await Promise.all([
-        supabaseClient
-          .from("products")
-          .select("id, name, sku, selling_price, cost_price, stock_quantity, low_stock_threshold, expiration_date, supplier"),
-        supabaseClient
-          .from("inventory_logs")
-          .select("id, product_id, adjustment_type, quantity, reason, created_at, recorded_by")
-          .order("created_at", { ascending: false }),
-      ])
-      const recorderIds = Array.from(new Set((logRows ?? []).map((row) => row.recorded_by).filter(Boolean)))
-      const { data: profiles } = recorderIds.length
-        ? await supabaseClient.from("profiles").select("id, full_name").in("id", recorderIds as string[])
-        : { data: [] as Array<{ id: string; full_name: string }> }
-      const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]))
-
-      if (cancelled) return
-      const mappedProducts: Product[] = (productRows ?? []).map((row) => ({
-        id: row.id,
-        name: row.name,
-        sku: row.sku ?? undefined,
-        sellingPrice: Number(row.selling_price ?? 0),
-        costPrice: Number(row.cost_price ?? 0),
-        stockQuantity: row.stock_quantity,
-        lowStockThreshold: row.low_stock_threshold,
-        expirationDate: row.expiration_date ?? undefined,
-        supplier: row.supplier ?? undefined,
-      }))
-      const mappedLogs: InventoryLog[] = (logRows ?? []).map((row) => ({
-        id: row.id,
-        productId: row.product_id,
-        type: row.adjustment_type,
-        quantity: Number(row.quantity ?? 0),
-        reason: row.reason ?? undefined,
-        date: row.created_at,
-        recordedBy: row.recorded_by ? nameById.get(row.recorded_by) ?? "Unknown" : "System",
-      }))
-      setProducts(mappedProducts)
-      setLogs(mappedLogs)
-      setSelectedProductId(mappedProducts[0]?.id ?? null)
-    })()
-    return () => {
-      cancelled = true
-    }
+    loadProducts()
   }, [])
 
-  const selectedProduct = useMemo(
-    () => products.find((product) => product.id === selectedProductId) ?? null,
-    [products, selectedProductId],
+  const loadProducts = async () => {
+    setLoading(true)
+    try {
+      const data = await getProducts()
+      setProducts(data)
+    } catch (err) {
+      console.error("Failed to load products:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Get suppliers for filter dropdown
+  const suppliers = useMemo(
+    () => Array.from(new Set(products.map((p) => p.supplier).filter(Boolean))) as string[],
+    [products],
   )
 
-  const selectedProductLogs = useMemo(
-    () =>
-      logs
-        .filter((log) => log.productId === selectedProductId)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [logs, selectedProductId],
-  )
+  // Filter products
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      // Search filter
+      if (filters.search) {
+        const search = filters.search.toLowerCase()
+        if (
+          !product.name.toLowerCase().includes(search) &&
+          !(product.sku?.toLowerCase().includes(search))
+        ) {
+          return false
+        }
+      }
+
+      // Supplier filter
+      if (filters.supplier && product.supplier !== filters.supplier) {
+        return false
+      }
+
+      // Status filter
+      if (filters.status !== "all") {
+        const today = new Date()
+        const expiryDate = product.expirationDate ? new Date(product.expirationDate) : null
+        const daysToExpiry = expiryDate
+          ? Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          : null
+
+        if (filters.status === "low-stock") {
+          if (product.stockQuantity > product.lowStockThreshold) return false
+        } else if (filters.status === "expiring-soon") {
+          if (daysToExpiry === null || daysToExpiry > 30 || daysToExpiry < 0) return false
+        } else if (filters.status === "expired") {
+          if (daysToExpiry === null || daysToExpiry >= 0) return false
+        }
+      }
+
+      return true
+    })
+  }, [products, filters])
+
+  // Summary stats
+  const stats = useMemo(() => {
+    const today = new Date()
+    return {
+      totalProducts: products.length,
+      lowStock: products.filter((p) => p.stockQuantity <= p.lowStockThreshold).length,
+      expiringsoon: products.filter((p) => {
+        if (!p.expirationDate) return false
+        const expiry = new Date(p.expirationDate)
+        const days = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        return days > 0 && days <= 30
+      }).length,
+      expired: products.filter((p) => {
+        if (!p.expirationDate) return false
+        const expiry = new Date(p.expirationDate)
+        return expiry < today
+      }).length,
+    }
+  }, [products])
 
   return (
     <PageWrapper>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        {/* Header */}
+        <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Inventory</h2>
-            <p className="mt-1 text-gray-600">
-              Stock overview with low-stock and expiry monitoring.
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
+            <p className="mt-1 text-gray-600">Stock levels and product management</p>
           </div>
-          <Link
-            href="/inventory/adjustments"
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
-            Log Adjustment
-          </Link>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700"
+            >
+              + Add Product
+            </button>
+            <Link
+              href="/inventory/adjustments"
+              className="rounded-lg bg-gray-600 px-4 py-2 text-white font-medium hover:bg-gray-700"
+            >
+              Log Adjustment
+            </Link>
+          </div>
         </div>
 
-        <StockTable
-          products={products}
-          logs={logs}
-          selectedProductId={selectedProductId}
-          onSelectProduct={setSelectedProductId}
-        />
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="rounded-lg bg-white p-4 shadow">
+            <p className="text-sm text-gray-600">Total Products</p>
+            <p className="mt-2 text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+          </div>
+          <div className="rounded-lg bg-white p-4 shadow">
+            <p className="text-sm text-gray-600">Low Stock</p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{stats.lowStock}</p>
+          </div>
+          <div className="rounded-lg bg-white p-4 shadow">
+            <p className="text-sm text-gray-600">Expiring Soon</p>
+            <p className="mt-2 text-2xl font-bold text-yellow-600">{stats.expiringsoon}</p>
+          </div>
+          <div className="rounded-lg bg-white p-4 shadow">
+            <p className="text-sm text-gray-600">Expired</p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{stats.expired}</p>
+          </div>
+        </div>
 
-        <div className="rounded-lg bg-white p-5 shadow">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Inventory Log {selectedProduct ? `- ${selectedProduct.name}` : ""}
-          </h3>
-          <div className="mt-3 overflow-x-auto">
+        {/* Search & Filters */}
+        <div className="space-y-4 rounded-lg bg-white p-4 shadow">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <input
+                type="text"
+                placeholder="Search by product name or SKU..."
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Stock Status
+              </label>
+              <select
+                value={filters.status}
+                onChange={(e) =>
+                  setFilters({
+                    ...filters,
+                    status: e.target.value as FilterState["status"],
+                  })
+                }
+                className="rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="all">All</option>
+                <option value="low-stock">Low Stock</option>
+                <option value="expiring-soon">Expiring Soon</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+            {suppliers.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Supplier
+                </label>
+                <select
+                  value={filters.supplier || ""}
+                  onChange={(e) =>
+                    setFilters({ ...filters, supplier: e.target.value || undefined })
+                  }
+                  className="rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                  <option value="">All Suppliers</option>
+                  {suppliers.map((supplier) => (
+                    <option key={supplier} value={supplier}>
+                      {supplier}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Table */}
+        {loading ? (
+          <div className="rounded-lg bg-white p-8 text-center shadow">
+            <p className="text-gray-600">Loading products...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="rounded-lg bg-white p-8 text-center shadow">
+            <p className="text-gray-600">No products found</p>
+          </div>
+        ) : (
+          <div className="rounded-lg bg-white shadow overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 py-2 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                    Date
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Product Name
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                    Type
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    SKU
                   </th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                    Qty
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Supplier
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                    Reason
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                    Cost Price
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                    Recorded By
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                    Selling Price
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                    Stock
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Threshold
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Expiration
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                    Action
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {selectedProductLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-3 py-6 text-center text-sm text-gray-500">
-                      No movement records for this product.
-                    </td>
-                  </tr>
-                ) : (
-                  selectedProductLogs.map((log) => (
-                    <tr key={log.id}>
-                      <td className="px-3 py-2 text-sm text-gray-700">
-                        {new Date(log.date).toLocaleString("en-PH")}
+                {filteredProducts.map((product) => {
+                  const today = new Date()
+                  const expiryDate = product.expirationDate
+                    ? new Date(product.expirationDate)
+                    : null
+                  const daysToExpiry = expiryDate
+                    ? Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                    : null
+
+                  let statusBadges = []
+                  if (product.stockQuantity <= 0) {
+                    statusBadges.push(
+                      <span key="out" className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 mr-1">
+                        Out of Stock
+                      </span>,
+                    )
+                  } else if (product.stockQuantity <= product.lowStockThreshold) {
+                    statusBadges.push(
+                      <span key="low" className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 mr-1">
+                        Low Stock
+                      </span>,
+                    )
+                  }
+
+                  if (daysToExpiry !== null) {
+                    if (daysToExpiry < 0) {
+                      statusBadges.push(
+                        <span key="expired" className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">
+                          Expired
+                        </span>,
+                      )
+                    } else if (daysToExpiry <= 30) {
+                      statusBadges.push(
+                        <span key="expiring" className="inline-block rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                          Expiring Soon
+                        </span>,
+                      )
+                    }
+                  }
+
+                  if (statusBadges.length === 0) {
+                    statusBadges.push(
+                      <span key="ok" className="inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                        OK
+                      </span>,
+                    )
+                  }
+
+                  return (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        {product.name}
                       </td>
-                      <td className="px-3 py-2 text-sm text-gray-700">{log.type}</td>
-                      <td className="px-3 py-2 text-right text-sm font-medium text-gray-900">
-                        {log.quantity}
+                      <td className="px-4 py-3 text-sm text-gray-600">{product.sku ?? "—"}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {product.supplier ?? "—"}
                       </td>
-                      <td className="px-3 py-2 text-sm text-gray-700">{log.reason ?? "-"}</td>
-                      <td className="px-3 py-2 text-sm text-gray-700">{log.recordedBy}</td>
+                      <td className="px-4 py-3 text-right text-sm text-gray-900">
+                        {formatCurrency(product.costPrice)}
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm text-gray-900">
+                        {formatCurrency(product.sellingPrice)}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-right text-sm font-bold ${
+                          product.stockQuantity <= product.lowStockThreshold
+                            ? "text-red-600"
+                            : "text-gray-900"
+                        }`}
+                      >
+                        {product.stockQuantity}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {product.lowStockThreshold}
+                      </td>
+                      <td className="px-4 py-3 text-sm">{statusBadges}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {product.expirationDate ? formatDate(product.expirationDate) : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`/inventory/${product.id}`}
+                          className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                        >
+                          View
+                        </Link>
+                      </td>
                     </tr>
-                  ))
-                )}
+                  )
+                })}
               </tbody>
             </table>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Add Product Modal */}
+      {showAddModal && (
+        <ProductForm
+          onSuccess={() => {
+            setShowAddModal(false)
+            loadProducts()
+          }}
+          onCancel={() => setShowAddModal(false)}
+        />
+      )}
     </PageWrapper>
   )
 }
