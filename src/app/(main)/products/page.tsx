@@ -3,11 +3,14 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import PageWrapper from "@/components/layout/PageWrapper"
+import { useCurrentUser } from "@/lib/auth/current-user"
 import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { Product } from "@/types/product"
 
 export default function ProductsPage() {
+  const { role } = useCurrentUser()
+  const canManage = role === "Owner" || role === "Admin"
   const [products, setProducts] = useState<Product[]>([])
 
   useEffect(() => {
@@ -47,12 +50,14 @@ export default function ProductsPage() {
               Track retail items, stock levels, and supplier details.
             </p>
           </div>
-          <Link
-            href="/products/new"
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
-            Add Product
-          </Link>
+          {canManage ? (
+            <Link
+              href="/products/new"
+              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              Add Product
+            </Link>
+          ) : null}
         </div>
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
@@ -113,7 +118,7 @@ export default function ProductsPage() {
                       href={`/products/${product.id}`}
                       className="text-sm text-blue-600 hover:text-blue-800"
                     >
-                      Edit
+                      {canManage ? "Edit" : "View"}
                     </Link>
                   </td>
                 </tr>
