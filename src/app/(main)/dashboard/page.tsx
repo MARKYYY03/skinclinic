@@ -8,9 +8,12 @@ import SalesChart from "@/components/dashboard/SalesChart"
 import ServicesChart from "@/components/dashboard/ServicesChart"
 import StaffCommissionsWidget from "@/components/dashboard/StaffCommissionsWidget"
 import TransactionChart from "@/components/dashboard/TransactionChart"
+import LowStockAlert from "@/components/inventory/LowStockAlert"
 import PageWrapper from "@/components/layout/PageWrapper"
 import { supabaseClient } from "@/lib/supabase/client"
+import { getProducts } from "@/lib/actions/inventory"
 import { formatCurrency } from "@/lib/utils"
+import type { Product } from "@/types/product"
 
 interface StaffCommissionRow {
   staffName: string
@@ -59,6 +62,7 @@ export default function DashboardPage() {
   const [recentTransactions, setRecentTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [chartsLoading, setChartsLoading] = useState(false)
+  const [lowStockProducts, setLowStockProducts] = useState<Product[]>([])
 
   // Initial dashboard data load (runs once on mount)
   useEffect(() => {
@@ -201,6 +205,14 @@ export default function DashboardPage() {
             createdAt: row.created_at,
           })),
         )
+
+        // Fetch low stock products
+        const products = await getProducts()
+        const lowStock = products
+          .filter((p) => p.stockQuantity <= p.lowStockThreshold)
+          .sort((a, b) => a.stockQuantity - b.stockQuantity)
+          .slice(0, 5)
+        setLowStockProducts(lowStock)
       } catch (error) {
         console.error("Dashboard initial load error:", error)
       } finally {
@@ -455,6 +467,7 @@ export default function DashboardPage() {
             <RecentTransactions rows={recentTransactions} />
           </div>
           <div className="space-y-4">
+            <LowStockAlert products={lowStockProducts} />
             <StaffCommissionsWidget rows={topStaffCommissions} />
             <PaymentMethodsChart data={paymentMethodData} />
             <ServicesChart data={serviceData} />
