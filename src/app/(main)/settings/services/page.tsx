@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { useCurrentUser } from "@/lib/auth/current-user"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 type ServiceRow = {
   id: string
@@ -21,6 +22,8 @@ export default function ServicesSettingsPage() {
   const [rows, setRows] = useState<ServiceRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const [name, setName] = useState("")
   const [category, setCategory] = useState("")
@@ -121,6 +124,13 @@ export default function ServicesSettingsPage() {
     }
   }
 
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedRows = rows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
+
   return (
     <div className="space-y-6">
       <form onSubmit={createService} className="space-y-3 rounded-lg bg-white p-5 shadow">
@@ -186,63 +196,78 @@ export default function ServicesSettingsPage() {
         {loading ? (
           <div className="p-4 text-sm text-gray-600">Loading services…</div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Category
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Price
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Commission %
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{r.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{r.category ?? "—"}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">₱{Number(r.price).toFixed(2)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {r.commission_rate ?? 0}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    {canManage ? (
-                      <button
-                        onClick={() => void toggleActive(r.id, !r.is_active)}
-                        className={`rounded-full px-2 py-1 text-xs font-medium ${
-                          r.is_active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {r.is_active ? "Active" : "Inactive"}
-                      </button>
-                    ) : (
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium ${
-                          r.is_active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {r.is_active ? "Active" : "Inactive"}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="space-y-0 overflow-hidden">
+            <div className="overflow-x-auto rounded-b-none">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Category
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Price
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Commission %
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {paginatedRows.map((r) => (
+                    <tr key={r.id}>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{r.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{r.category ?? "—"}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">₱{Number(r.price).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {r.commission_rate ?? 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        {canManage ? (
+                          <button
+                            onClick={() => void toggleActive(r.id, !r.is_active)}
+                            className={`rounded-full px-2 py-1 text-xs font-medium ${
+                              r.is_active
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {r.is_active ? "Active" : "Inactive"}
+                          </button>
+                        ) : (
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-medium ${
+                              r.is_active
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {r.is_active ? "Active" : "Inactive"}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <DataPaginator
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={rows.length}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size)
+                setPage(1)
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

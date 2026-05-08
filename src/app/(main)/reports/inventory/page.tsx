@@ -6,6 +6,7 @@ import { getProducts, getAllInventoryLogs } from "@/lib/actions/inventory"
 import type { Product } from "@/types/product"
 import type { InventoryLog } from "@/types/inventory"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 export default function InventoryReportPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -13,6 +14,14 @@ export default function InventoryReportPage() {
   const [startDate, setStartDate] = useState(new Date(2026, 4, 1).toISOString().split("T")[0])
   const [endDate, setEndDate] = useState(new Date(2026, 4, 31).toISOString().split("T")[0])
   const [loading, setLoading] = useState(true)
+  const [stockPage, setStockPage] = useState(1)
+  const [stockPageSize, setStockPageSize] = useState(10)
+  const [lowStockPage, setLowStockPage] = useState(1)
+  const [lowStockPageSize, setLowStockPageSize] = useState(10)
+  const [expiringPage, setExpiringPage] = useState(1)
+  const [expiringPageSize, setExpiringPageSize] = useState(10)
+  const [logsPage, setLogsPage] = useState(1)
+  const [logsPageSize, setLogsPageSize] = useState(10)
 
   useEffect(() => {
     loadData()
@@ -90,12 +99,28 @@ export default function InventoryReportPage() {
       .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
   }, [products])
 
+  // Current stock pagination
+  const stockTotalPages = Math.max(1, Math.ceil(summaryStats.length / stockPageSize))
+  const stockCurrentPage = Math.min(stockPage, stockTotalPages)
+  const paginatedStockSnapshot = summaryStats.slice(
+    (stockCurrentPage - 1) * stockPageSize,
+    stockCurrentPage * stockPageSize,
+  )
+
   // SECTION 3: Low Stock Alert List
   const lowStockProducts = useMemo(() => {
     return products
       .filter((p) => p.stockQuantity <= p.lowStockThreshold)
       .sort((a, b) => a.stockQuantity - b.stockQuantity)
   }, [products])
+
+  // Low stock pagination
+  const lowStockTotalPages = Math.max(1, Math.ceil(lowStockProducts.length / lowStockPageSize))
+  const lowStockCurrentPage = Math.min(lowStockPage, lowStockTotalPages)
+  const paginatedLowStockProducts = lowStockProducts.slice(
+    (lowStockCurrentPage - 1) * lowStockPageSize,
+    lowStockCurrentPage * lowStockPageSize,
+  )
 
   // SECTION 4: Spoilage Report
   const spoilageReport = useMemo(() => {
@@ -110,6 +135,14 @@ export default function InventoryReportPage() {
       )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [logs, startDate, endDate])
+
+  // Spoilage pagination
+  const spoilageTotalPages = Math.max(1, Math.ceil(spoilageReport.length / expiringPageSize))
+  const spoilageCurrentPage = Math.min(expiringPage, spoilageTotalPages)
+  const paginatedSpoilageReport = spoilageReport.slice(
+    (spoilageCurrentPage - 1) * expiringPageSize,
+    spoilageCurrentPage * expiringPageSize,
+  )
 
   const spoilageCostLoss = useMemo(() => {
     return spoilageReport.reduce((sum, log) => {
@@ -162,6 +195,14 @@ export default function InventoryReportPage() {
 
     return Object.values(summary).sort((a, b) => a.name.localeCompare(b.name))
   }, [products, logs, startDate, endDate])
+
+  // Movement summary pagination
+  const movementTotalPages = Math.max(1, Math.ceil(movementSummary.length / logsPageSize))
+  const movementCurrentPage = Math.min(logsPage, movementTotalPages)
+  const paginatedMovementSummary = movementSummary.slice(
+    (movementCurrentPage - 1) * logsPageSize,
+    movementCurrentPage * logsPageSize,
+  )
 
   return (
     <PageWrapper>
@@ -262,7 +303,7 @@ export default function InventoryReportPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {stockSnapshot.map((product) => (
+                    {paginatedStockSnapshot.map((product) => (
                       <tr key={product.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                           {product.name}
@@ -331,7 +372,7 @@ export default function InventoryReportPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {lowStockProducts.map((product) => (
+                      {paginatedLowStockProducts.map((product) => (
                         <tr key={product.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm font-medium text-gray-900">
                             {product.name}

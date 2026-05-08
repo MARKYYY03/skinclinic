@@ -1,4 +1,8 @@
+"use client"
+
+import { useState } from "react"
 import { formatCurrency } from "@/lib/utils"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 interface CommissionReportTableProps {
   summaryRows: Array<{
@@ -22,10 +26,26 @@ export default function CommissionReportTable({
   summaryRows,
   detailRows,
 }: CommissionReportTableProps) {
+  const [summaryPage, setSummaryPage] = useState(1)
+  const [detailPage, setDetailPage] = useState(1)
+  const [pageSize] = useState(10)
+
+  const summaryTotalPages = Math.max(1, Math.ceil(summaryRows.length / pageSize))
+  const detailTotalPages = Math.max(1, Math.ceil(detailRows.length / pageSize))
+
+  const paginatedSummaryRows = summaryRows.slice(
+    (summaryPage - 1) * pageSize,
+    summaryPage * pageSize,
+  )
+  const paginatedDetailRows = detailRows.slice(
+    (detailPage - 1) * pageSize,
+    detailPage * pageSize,
+  )
   return (
-    <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-[#e5ded4]">
+    <div className="space-y-8">
+      <div className="space-y-0 rounded-xl border border-[#dfd8cf] bg-white shadow-sm overflow-hidden">
+        <div className="overflow-x-auto rounded-b-none">
+          <table className="min-w-full divide-y divide-[#e5ded4]">
           <thead className="bg-[#F5F0E8]/80">
             <tr>
               <th className="px-3 py-2 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
@@ -40,7 +60,7 @@ export default function CommissionReportTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e5ded4] bg-white">
-            {summaryRows.map((row) => (
+            {paginatedSummaryRows.map((row) => (
               <tr key={row.staffName}>
                 <td className="px-3 py-2 text-sm text-[#314031]">{row.staffName}</td>
                 <td className="px-3 py-2 text-right text-sm text-[#314031]">
@@ -53,10 +73,20 @@ export default function CommissionReportTable({
             ))}
           </tbody>
         </table>
+        </div>
+        <DataPaginator
+          currentPage={summaryPage}
+          totalPages={summaryTotalPages}
+          pageSize={pageSize}
+          totalItems={summaryRows.length}
+          onPageChange={setSummaryPage}
+          onPageSizeChange={() => setSummaryPage(1)}
+        />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-[#e5ded4]">
+      <div className="space-y-0 rounded-xl border border-[#dfd8cf] bg-white shadow-sm overflow-hidden">
+        <div className="overflow-x-auto rounded-b-none">
+          <table className="min-w-full divide-y divide-[#e5ded4]">
           <thead className="bg-[#F5F0E8]/80">
             <tr>
               <th className="px-3 py-2 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
@@ -86,7 +116,7 @@ export default function CommissionReportTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e5ded4] bg-white">
-            {detailRows.map((row, index) => (
+            {paginatedDetailRows.map((row, index) => (
               <tr key={`${row.transactionId}-${row.staffName}-${index}`}>
                 <td className="px-3 py-2 text-sm text-[#314031]">{row.date}</td>
                 <td className="px-3 py-2 text-sm text-[#314031]">{row.staffName}</td>
@@ -106,6 +136,15 @@ export default function CommissionReportTable({
             ))}
           </tbody>
         </table>
+      </div>
+      <DataPaginator
+        currentPage={detailPage}
+        totalPages={detailTotalPages}
+        pageSize={pageSize}
+        totalItems={detailRows.length}
+        onPageChange={setDetailPage}
+        onPageSizeChange={() => setDetailPage(1)}
+      />
       </div>
     </div>
   )

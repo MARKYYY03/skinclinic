@@ -1,22 +1,33 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 
 import type { Transaction } from "@/types/transaction"
 import { formatCurrency, formatDateTime } from "@/lib/utils"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 interface TransactionTableProps {
   transactions: Transaction[]
 }
 
 export default function TransactionTable({ transactions }: TransactionTableProps) {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const totalPages = Math.max(1, Math.ceil(transactions.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedTransactions = transactions.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
+
   const totals = useMemo(() => {
-    const net = transactions.reduce((s, t) => s + t.netAmount, 0)
-    const paid = transactions.reduce((s, t) => s + t.amountPaid, 0)
-    const bal = transactions.reduce((s, t) => s + t.balanceDue, 0)
+    const net = paginatedTransactions.reduce((s, t) => s + t.netAmount, 0)
+    const paid = paginatedTransactions.reduce((s, t) => s + t.amountPaid, 0)
+    const bal = paginatedTransactions.reduce((s, t) => s + t.balanceDue, 0)
     return { net, paid, bal }
-  }, [transactions])
+  }, [paginatedTransactions])
 
   function statusBadge(status: string) {
     switch (status) {
@@ -32,8 +43,8 @@ export default function TransactionTable({ transactions }: TransactionTableProps
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
-      <div className="overflow-x-auto">
+    <div className="space-y-0 rounded-xl border border-[#dfd8cf] bg-white shadow-sm overflow-hidden">
+      <div className="overflow-x-auto rounded-b-none">
         <table className="min-w-full divide-y divide-[#e5ded4]">
           <thead className="bg-[#F5F0E8]/80">
             <tr>
@@ -70,7 +81,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e5ded4] bg-white">
-            {transactions.length === 0 ? (
+            {paginatedTransactions.length === 0 ? (
               <tr>
                 <td
                   colSpan={9}
@@ -80,7 +91,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                 </td>
               </tr>
             ) : (
-              transactions.map((t) => (
+              paginatedTransactions.map((t) => (
                 <tr
                   key={t.id}
                   className={`hover:bg-[#F5F0E8]/40 ${t.status === "Voided" ? "opacity-80" : ""}`}
@@ -139,14 +150,14 @@ export default function TransactionTable({ transactions }: TransactionTableProps
               ))
             )}
           </tbody>
-          {transactions.length > 0 ? (
+          {paginatedTransactions.length > 0 ? (
             <tfoot className="border-t-2 border-[#6B7A3E]/40 bg-[#F5F0E8]/90">
               <tr>
                 <td
                   colSpan={3}
                   className="px-4 py-3 text-sm font-semibold text-[#1f2918]"
                 >
-                  Totals ({transactions.length})
+                  Page totals ({paginatedTransactions.length})
                 </td>
                 <td className="px-4 py-3 text-right text-sm font-bold text-[#1f2918]">
                   {formatCurrency(totals.net)}
@@ -163,6 +174,18 @@ export default function TransactionTable({ transactions }: TransactionTableProps
           ) : null}
         </table>
       </div>
+
+      <DataPaginator
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={transactions.length}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+      />
     </div>
   )
 }

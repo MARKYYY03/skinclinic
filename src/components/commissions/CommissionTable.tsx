@@ -1,6 +1,10 @@
+"use client"
+
 import Link from "next/link"
+import { useState } from "react"
 
 import { formatCurrency, formatDate } from "@/lib/utils"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 interface CommissionTableProps {
   rows: Array<{
@@ -18,9 +22,20 @@ interface CommissionTableProps {
 }
 
 export default function CommissionTable({ rows }: CommissionTableProps) {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedRows = rows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
+
   return (
-    <div className="overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
-      <table className="min-w-full divide-y divide-[#e5ded4]">
+    <div className="space-y-0 rounded-xl border border-[#dfd8cf] bg-white shadow-sm overflow-hidden">
+      <div className="overflow-x-auto rounded-b-none">
+        <table className="min-w-full divide-y divide-[#e5ded4]">
         <thead className="bg-[#F5F0E8]/80">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
@@ -53,14 +68,14 @@ export default function CommissionTable({ rows }: CommissionTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-[#e5ded4] bg-white">
-          {rows.length === 0 ? (
+          {paginatedRows.length === 0 ? (
             <tr>
               <td colSpan={9} className="px-4 py-12 text-center text-sm text-[#6a6358]">
-                No commission entries in this range.
+                {rows.length === 0 ? "No commission entries in this range." : "No entries on this page."}
               </td>
             </tr>
           ) : null}
-          {rows.map((row) => (
+          {paginatedRows.map((row) => (
             <tr key={row.id}>
               <td className="px-4 py-3 text-sm text-[#314031]">{formatDate(row.date)}</td>
               <td className="px-4 py-3 text-sm text-[#314031]">{row.clientName}</td>
@@ -88,6 +103,19 @@ export default function CommissionTable({ rows }: CommissionTableProps) {
           ))}
         </tbody>
       </table>
+      </div>
+
+      <DataPaginator
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={rows.length}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+      />
     </div>
   )
 }
