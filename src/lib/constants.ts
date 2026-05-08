@@ -77,7 +77,7 @@ export const NAVIGATION_ITEMS: readonly NavItem[] = [
     name: "Products",
     href: "/products",
     icon: "Package",
-    roles: ["Owner", "Admin"],
+    roles: ["Owner", "Admin", "Cashier", "Staff"],
   },
   {
     name: "Expenses",
