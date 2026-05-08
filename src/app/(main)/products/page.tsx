@@ -12,6 +12,8 @@ export default function ProductsPage() {
   const { role } = useCurrentUser()
   const canManage = role === "Owner" || role === "Admin"
   const [products, setProducts] = useState<Product[]>([])
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -114,18 +116,96 @@ export default function ProductsPage() {
                     {product.expirationDate ? formatDate(product.expirationDate) : "N/A"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/products/${product.id}`}
+                    <button
+                      onClick={() => {
+                        setSelectedProduct(product)
+                        setIsModalOpen(true)
+                      }}
                       className="text-sm text-blue-600 hover:text-blue-800"
                     >
-                      {canManage ? "Edit" : "View"}
-                    </Link>
+                      View
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {isModalOpen && selectedProduct && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center" style={{ zIndex: 9999 }}>
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" style={{ zIndex: 10000 }}>
+              <div className="flex justify-between items-center p-4 border-b">
+                <h2 className="text-xl font-semibold text-gray-900">Product Details</h2>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+              <div className="p-6 space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">{selectedProduct.name}</h3>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                  <div className="rounded-lg bg-white p-4 shadow border">
+                    <p className="text-sm text-gray-500">Selling Price</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {formatCurrency(selectedProduct.sellingPrice)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-white p-4 shadow border">
+                    <p className="text-sm text-gray-500">Cost Price</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {formatCurrency(selectedProduct.costPrice)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-white p-4 shadow border">
+                    <p className="text-sm text-gray-500">Current Stock</p>
+                    <p
+                      className={`text-xl font-bold ${
+                        selectedProduct.stockQuantity <= selectedProduct.lowStockThreshold
+                          ? "text-red-600"
+                          : "text-gray-900"
+                      }`}
+                    >
+                      {selectedProduct.stockQuantity}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-white p-4 shadow border">
+                    <p className="text-sm text-gray-500">Expiry Date</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {selectedProduct.expirationDate ? formatDate(selectedProduct.expirationDate) : "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-white p-5 shadow border">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <p className="text-sm text-gray-700">
+                      <strong>SKU:</strong> {selectedProduct.sku ?? "N/A"}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <strong>Supplier:</strong> {selectedProduct.supplier ?? "N/A"}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <strong>Low Stock Threshold:</strong> {selectedProduct.lowStockThreshold}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <strong>Estimated Margin:</strong>{" "}
+                      {Math.round(
+                        ((selectedProduct.sellingPrice - selectedProduct.costPrice) / selectedProduct.sellingPrice) * 100,
+                      )}
+                      %
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageWrapper>
   )
