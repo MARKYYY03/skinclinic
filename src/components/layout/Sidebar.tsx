@@ -25,6 +25,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import ImageModal from "@/components/ImageModal"
+import LogoutDialog from "@/components/LogoutDialog"
 
 interface SidebarProps {
   userName?: string
@@ -72,6 +73,7 @@ export default function Sidebar({
 
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [showImageModal, setShowImageModal] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
   useEffect(() => {
     if (!userId) return
@@ -226,12 +228,21 @@ export default function Sidebar({
 
         <button
           type="button"
-          onClick={logout}
+          onClick={() => setShowLogoutDialog(true)}
           className={`mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#6B7A3E] bg-white px-3 py-2 text-sm font-medium text-[#6B7A3E] hover:bg-[#ebe6dd]`}
         >
           <LogOut className="h-4 w-4" />
           {!isCollapsed ? "Logout" : <span className="sr-only">Logout</span>}
         </button>
+
+        <LogoutDialog
+          isOpen={showLogoutDialog}
+          onConfirm={() => {
+            setShowLogoutDialog(false)
+            logout()
+          }}
+          onCancel={() => setShowLogoutDialog(false)}
+        />
 
         {userAvatar && (
           <ImageModal
