@@ -7,6 +7,7 @@ import { useCurrentUser } from "@/lib/auth/current-user"
 import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { Product } from "@/types/product"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 export default function ProductsPage() {
   const { role } = useCurrentUser()
@@ -14,6 +15,8 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     let cancelled = false
@@ -41,6 +44,13 @@ export default function ProductsPage() {
       cancelled = true
     }
   }, [])
+
+  const totalPages = Math.max(1, Math.ceil(products.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
 
   return (
     <PageWrapper>
@@ -87,7 +97,7 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {products.map((product) => (
+              {paginatedProducts.map((product) => (
                 <tr key={product.id}>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-700">
