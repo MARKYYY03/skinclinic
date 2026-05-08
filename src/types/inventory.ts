@@ -6,4 +6,6 @@ export interface InventoryLog {
   reason?: string
   date: string
   recordedBy: string
+  stockBefore?: number
+  stockAfter?: number
 }
