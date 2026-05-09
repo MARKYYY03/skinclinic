@@ -20,11 +20,13 @@ import {
   Settings,
   Users,
   Wallet,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import ImageModal from "@/components/ImageModal"
+import LogoutDialog from "@/components/LogoutDialog"
 
 interface SidebarProps {
   userName?: string
@@ -49,7 +51,7 @@ const iconMap: Record<string, LucideIcon> = {
   Settings,
 }
 
-const oliveActive = "bg-[#6B7A3E] text-[#F5F0E8]"
+const oliveActive = "bg-[#6B7A3E] text-[#F5F0E8] border-l-4 border-[#6B7A3E]"
 const inactive = "text-[#314031] hover:bg-[#ebe6dd]"
 
 function linkActive(pathname: string, href: string) {
@@ -72,6 +74,8 @@ export default function Sidebar({
 
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [showImageModal, setShowImageModal] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (!userId) return
@@ -139,19 +143,28 @@ export default function Sidebar({
                     </Link>
                   </li>
                 )
-              }
+               }
 
-              return (
+               const isOpen = openSections[item.name] ?? childActive
+
+               return (
                 <li key={item.name}>
-                  <div
-                    className={`flex items-center rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase ${
-                      childActive ? "text-[#6B7A3E]" : "text-[#6a6358]"
-                    }`}
-                  >
-                    <Icon className="mr-2 h-4 w-4 shrink-0" />
-                    {item.name}
-                  </div>
-                  <ul className="mt-0.5 space-y-0.5 border-l border-[#cfc6ba] py-1 pl-2 ml-6">
+<button
+  type="button"
+  className={`flex w-full items-center rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase ${
+    childActive ? "text-[#6B7A3E]" : "text-[#6a6358]"
+  }`}
+  onClick={() => setOpenSections(prev => ({ ...prev, [item.name]: !prev[item.name] }))}
+  aria-expanded={isOpen}
+>
+  <Icon className="mr-2 h-4 w-4 shrink-0" />
+  {item.name}
+  <ChevronDown
+    className={`ml-auto h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+  />
+</button>
+                  {isOpen && (
+  <ul className="mt-0.5 space-y-0.5 border-l border-[#cfc6ba] py-1 pl-2 ml-6">
                     {item.children
                       .filter((child) => !child.roles || child.roles.includes(userRole))
                       .map((child) => {
@@ -169,7 +182,7 @@ export default function Sidebar({
                         </li>
                       )
                     })}
-                  </ul>
+</ul>) }
                 </li>
               )
             }
@@ -226,12 +239,21 @@ export default function Sidebar({
 
         <button
           type="button"
-          onClick={logout}
+          onClick={() => setShowLogoutDialog(true)}
           className={`mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#6B7A3E] bg-white px-3 py-2 text-sm font-medium text-[#6B7A3E] hover:bg-[#ebe6dd]`}
         >
           <LogOut className="h-4 w-4" />
           {!isCollapsed ? "Logout" : <span className="sr-only">Logout</span>}
         </button>
+
+        <LogoutDialog
+          isOpen={showLogoutDialog}
+          onConfirm={() => {
+            setShowLogoutDialog(false)
+            logout()
+          }}
+          onCancel={() => setShowLogoutDialog(false)}
+        />
 
         {userAvatar && (
           <ImageModal

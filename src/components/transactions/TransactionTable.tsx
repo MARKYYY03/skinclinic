@@ -55,7 +55,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                 Client
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
-                Services
+                No. of Services
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-[#5c564c] uppercase">
                 Net
@@ -84,7 +84,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
             {paginatedTransactions.length === 0 ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   className="px-4 py-12 text-center text-sm text-[#6a6358]"
                 >
                   No transactions in this range
@@ -103,10 +103,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                     {t.clientName}
                   </td>
                   <td className="max-w-[15rem] truncate px-4 py-3 text-sm text-[#6a6358]">
-                    {t.items
-                      .filter((it) => it.type === "service")
-                      .map((it) => it.name)
-                      .join(", ") || "—"}
+{t.items.filter((it) => it.type === "service").length}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-[#314031]">
                     {formatCurrency(t.netAmount)}
