@@ -365,7 +365,7 @@ export default function ProfileSettingsPage() {
       {(photoPreview || photoUrl) && (
         <ImageModal
           isOpen={showImageModal}
-          imageUrl={photoPreview || photoUrl}
+          imageUrl={photoPreview || photoUrl!}
           userName={fullName}
           onClose={() => setShowImageModal(false)}
         />
