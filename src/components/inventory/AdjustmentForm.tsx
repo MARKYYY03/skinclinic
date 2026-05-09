@@ -55,7 +55,7 @@ export default function AdjustmentForm({
     ? type === "StockIn"
       ? selectedProduct.stockQuantity + quantity
       : selectedProduct.stockQuantity - quantity
-    : selectedProduct?.stockQuantity ?? 0
+    : 0
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
