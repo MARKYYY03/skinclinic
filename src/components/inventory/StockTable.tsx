@@ -1,7 +1,11 @@
+"use client"
+
+import { useState } from "react"
 import { Product } from "@/types/product"
 import { InventoryLog } from "@/types/inventory"
 import ExpiryBadge from "@/components/inventory/ExpiryBadge"
 import LowStockBadge from "@/components/inventory/LowStockBadge"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 interface StockTableProps {
   products: Product[]
@@ -16,14 +20,24 @@ export default function StockTable({
   selectedProductId,
   onSelectProduct,
 }: StockTableProps) {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const totalPages = Math.max(1, Math.ceil(products.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
   const getLatestMovement = (productId: string) =>
     logs
       .filter((log) => log.productId === productId)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
 
   return (
-    <div className="overflow-hidden rounded-lg bg-white shadow">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="space-y-0 rounded-lg bg-white shadow overflow-hidden">
+      <div className="overflow-x-auto rounded-b-none">
+        <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
@@ -50,7 +64,7 @@ export default function StockTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
-          {products.map((product) => {
+          {paginatedProducts.map((product) => {
             const latestMovement = getLatestMovement(product.id)
             const isSelected = selectedProductId === product.id
             return (
@@ -87,7 +101,17 @@ export default function StockTable({
             )
           })}
         </tbody>
-      </table>
-    </div>
+      </table>      </div>
+      <DataPaginator
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={products.length}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+      />    </div>
   )
 }

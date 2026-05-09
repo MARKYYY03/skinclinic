@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import PageWrapper from "@/components/layout/PageWrapper"
+import { useCurrentUser } from "@/lib/auth/current-user"
 
 export default function NewProductPage() {
   const router = useRouter()
+  const { role } = useCurrentUser()
   const [name, setName] = useState("")
   const [sku, setSku] = useState("")
   const [supplier, setSupplier] = useState("")
@@ -14,6 +16,12 @@ export default function NewProductPage() {
   const [stockQuantity, setStockQuantity] = useState(0)
   const [lowStockThreshold, setLowStockThreshold] = useState(5)
   const [expirationDate, setExpirationDate] = useState("")
+
+  useEffect(() => {
+    if (role !== "Owner" && role !== "Admin") {
+      router.replace("/products")
+    }
+  }, [role, router])
 
   return (
     <PageWrapper>

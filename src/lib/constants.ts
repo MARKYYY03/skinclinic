@@ -30,6 +30,7 @@ export const INVENTORY_ADJUSTMENT_TYPES = [
 export type NavChildItem = {
   readonly name: string
   readonly href: string
+  readonly roles?: readonly string[]
 }
 
 export type NavItem = {
@@ -76,7 +77,7 @@ export const NAVIGATION_ITEMS: readonly NavItem[] = [
     name: "Products",
     href: "/products",
     icon: "Package",
-    roles: ["Owner", "Admin"],
+    roles: ["Owner", "Admin", "Cashier", "Staff"],
   },
   {
     name: "Expenses",
@@ -102,6 +103,9 @@ export const NAVIGATION_ITEMS: readonly NavItem[] = [
     roles: ["Owner", "Admin"],
     children: [
       { name: "Sales", href: "/reports/sales" },
+      { name: "Expenses", href: "/reports/expenses" },
+      { name: "Profit & Loss", href: "/reports/profit-loss" },
+      { name: "Inventory", href: "/reports/inventory" },
       { name: "Commissions", href: "/reports/commissions" },
     ],
   },
@@ -111,8 +115,8 @@ export const NAVIGATION_ITEMS: readonly NavItem[] = [
     roles: ["Owner", "Admin", "Cashier", "Staff"],
     children: [
       { name: "Profile", href: "/settings/profile" },
-      { name: "Users", href: "/settings/users" },
-      { name: "Audit Log", href: "/settings/audit-log" },
+      { name: "Users", href: "/settings/users", roles: ["Owner", "Admin"] },
+      { name: "Audit Log", href: "/settings/audit-log", roles: ["Owner", "Admin"] },
     ],
   },
 ]

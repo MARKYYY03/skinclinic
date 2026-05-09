@@ -5,6 +5,7 @@ import { Fragment, useEffect, useMemo, useState } from "react"
 import { updateTransactionProcedureNotesAction } from "@/lib/actions/transactions"
 import { formatDate, formatCurrency } from "@/lib/utils"
 import { supabaseClient } from "@/lib/supabase/client"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 interface VisitRow {
   id: string
@@ -36,6 +37,8 @@ export default function VisitHistoryTable({
   const [visits, setVisits] = useState<VisitRow[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedVisitIds, setExpandedVisitIds] = useState<string[]>([])
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const [editingVisitId, setEditingVisitId] = useState<string | null>(null)
   const [procedureNotes, setProcedureNotes] = useState("")
@@ -203,8 +206,15 @@ export default function VisitHistoryTable({
     return { count, amount }
   }, [visits])
 
+  const totalPages = Math.max(1, Math.ceil(visits.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedVisits = visits.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
+
   return (
-    <div className="overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
+    <div className="space-y-0 overflow-hidden rounded-xl border border-[#dfd8cf] bg-white shadow-sm">
       <div className="border-b border-[#e5ded4] px-4 py-4 sm:px-6">
         <h3 className="text-lg font-semibold text-[#1f2918]">Visit history</h3>
         <p className="mt-1 text-sm text-[#6a6358]">
@@ -212,7 +222,7 @@ export default function VisitHistoryTable({
         </p>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-b-none">
         <table className="min-w-full divide-y divide-[#e5ded4]">
           <thead className="bg-[#F5F0E8]/70">
             <tr>
@@ -249,7 +259,7 @@ export default function VisitHistoryTable({
                   Loading visits…
                 </td>
               </tr>
-            ) : visits.length === 0 ? (
+            ) : paginatedVisits.length === 0 && visits.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}
@@ -258,8 +268,17 @@ export default function VisitHistoryTable({
                   No visits recorded yet
                 </td>
               </tr>
+            ) : paginatedVisits.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-6 py-12 text-center text-sm text-[#6a6358]"
+                >
+                  No visits on this page
+                </td>
+              </tr>
             ) : (
-              visits.map((visit) => (
+              paginatedVisits.map((visit) => (
                 <Fragment key={visit.id}>
                   <tr className="hover:bg-[#F5F0E8]/35">
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-[#314031]">
@@ -432,6 +451,18 @@ export default function VisitHistoryTable({
           </div>
         </div>
       ) : null}
+
+      <DataPaginator
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={visits.length}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+      />
     </div>
   )
 }

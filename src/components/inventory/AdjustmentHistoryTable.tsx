@@ -1,5 +1,9 @@
+"use client"
+
+import { useState } from "react"
 import { InventoryLog } from "@/types/inventory"
 import { formatDateTime } from "@/lib/utils"
+import DataPaginator from "@/components/ui/DataPaginator"
 
 interface AdjustmentHistoryTableProps {
   logs: (InventoryLog & { staffName: string })[]
@@ -13,6 +17,16 @@ const TYPE_BADGES = {
 }
 
 export default function AdjustmentHistoryTable({ logs }: AdjustmentHistoryTableProps) {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const totalPages = Math.max(1, Math.ceil(logs.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedLogs = logs.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
+
   if (logs.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
@@ -22,8 +36,9 @@ export default function AdjustmentHistoryTable({ logs }: AdjustmentHistoryTableP
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="space-y-0 rounded-lg border border-gray-200 bg-white overflow-hidden">
+      <div className="overflow-x-auto rounded-b-none">
+        <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
@@ -47,7 +62,7 @@ export default function AdjustmentHistoryTable({ logs }: AdjustmentHistoryTableP
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {logs.map((log) => {
+          {paginatedLogs.map((log) => {
             const badge = TYPE_BADGES[log.type]
             const quantitySign = log.type === "StockIn" ? "+" : "−"
             const quantityColor = log.type === "StockIn" ? "text-green-600" : "text-red-600"
@@ -79,6 +94,18 @@ export default function AdjustmentHistoryTable({ logs }: AdjustmentHistoryTableP
           })}
         </tbody>
       </table>
+      </div>
+      <DataPaginator
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={logs.length}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+      />
     </div>
   )
 }
