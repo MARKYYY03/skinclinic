@@ -229,7 +229,7 @@ export default function ProfileSettingsPage() {
                     aria-label="View your profile photo"
                   >
                     <img
-                      src={photoPreview || photoUrl}
+                      src={photoPreview || photoUrl || undefined}
                       alt="Profile"
                       className="h-32 w-32 rounded-2xl object-cover border-4 border-[#e5ded4]"
                     />

@@ -67,7 +67,7 @@ export default function SalesChart({ data, viewType, onViewTypeChange }: SalesCh
         label: "Sales",
         data: displayValues,
         backgroundColor: displayValues.map((value, index) =>
-          isMonthly && values[index] <= 0 ? "rgba(79, 159, 70, 0.18)" : "#4f9f46",
+          isMonthly && values[index] <= 0 ? "rgba(107, 122, 62, 0.18)" : "#6B7A3E",
         ),
         borderRadius: 10,
         borderSkipped: false,

@@ -100,9 +100,9 @@ export default function InventoryReportPage() {
   }, [products])
 
   // Current stock pagination
-  const stockTotalPages = Math.max(1, Math.ceil(summaryStats.length / stockPageSize))
+  const stockTotalPages = Math.max(1, Math.ceil(stockSnapshot.length / stockPageSize))
   const stockCurrentPage = Math.min(stockPage, stockTotalPages)
-  const paginatedStockSnapshot = summaryStats.slice(
+  const paginatedStockSnapshot = stockSnapshot.slice(
     (stockCurrentPage - 1) * stockPageSize,
     stockCurrentPage * stockPageSize,
   )
