@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { createProduct, updateProduct } from "@/lib/api/inventory-client"
 import type { Product } from "@/types/product"
-import { formatCurrency } from "@/lib/utils"
 
 interface ProductFormProps {
   product?: Product
@@ -79,183 +78,193 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">
-          {isEditing ? "Edit Product" : "Add Product"}
-        </h2>
+    <div className="w-full">
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-            {error}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Product Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Product Name{" "}
+            <span className="text-red-400" aria-hidden="true">
+              *
+            </span>
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+            placeholder="e.g., Facial Serum"
+          />
+        </div>
+
+        {/* SKU */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            SKU{" "}
+            {!isEditing && (
+              <span className="text-xs text-gray-500 font-normal">
+                (auto-generated if blank)
+              </span>
+            )}
+          </label>
+          <input
+            type="text"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+            placeholder="e.g., SKU-001"
+          />
+        </div>
+
+        {/* Description */}
+        {!isEditing && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+              placeholder="Optional description"
+              rows={2}
+            />
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Product Name */}
+        {/* Selling Price & Cost Price */}
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Product Name <span className="text-red-500">*</span>
+              Selling Price ₱{" "}
+              <span className="text-red-400" aria-hidden="true">
+                *
+              </span>
             </label>
             <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="e.g., Facial Serum"
+              type="number"
+              value={sellingPrice}
+              onChange={(e) => setSellingPrice(Number(e.target.value))}
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+              placeholder="0"
+              min="0"
             />
           </div>
 
-          {/* SKU */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              SKU {!isEditing && <span className="text-gray-500 text-xs">(auto-generated if blank)</span>}
+              Cost Price ₱{" "}
+              <span className="text-red-400" aria-hidden="true">
+                *
+              </span>
             </label>
             <input
-              type="text"
-              value={sku}
-              onChange={(e) => setSku(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="e.g., SKU-001"
+              type="number"
+              value={costPrice}
+              onChange={(e) => setCostPrice(Number(e.target.value))}
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+              placeholder="0"
+              min="0"
             />
           </div>
+        </div>
 
-          {/* Description */}
-          {!isEditing && (
+        {/* Stock Quantity & Low Stock Threshold */}
+        {!isEditing && (
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Optional description"
-                rows={2}
-              />
-            </div>
-          )}
-
-          {/* Selling Price & Cost Price */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Selling Price ₱ <span className="text-red-500">*</span>
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Stock Quantity</label>
               <input
                 type="number"
-                value={sellingPrice}
-                onChange={(e) => setSellingPrice(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                value={stockQuantity}
+                onChange={(e) => setStockQuantity(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
                 placeholder="0"
                 min="0"
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Cost Price ₱ <span className="text-red-500">*</span>
+                Low Stock Threshold
               </label>
               <input
                 type="number"
-                value={costPrice}
-                onChange={(e) => setCostPrice(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="0"
+                value={lowStockThreshold}
+                onChange={(e) => setLowStockThreshold(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+                placeholder="5"
                 min="0"
               />
             </div>
           </div>
+        )}
 
-          {/* Stock Quantity & Low Stock Threshold */}
-          {!isEditing && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Stock Quantity
-                </label>
-                <input
-                  type="number"
-                  value={stockQuantity}
-                  onChange={(e) => setStockQuantity(Number(e.target.value))}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="0"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Low Stock Threshold
-                </label>
-                <input
-                  type="number"
-                  value={lowStockThreshold}
-                  onChange={(e) => setLowStockThreshold(Number(e.target.value))}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="5"
-                  min="0"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Expiration Date & Supplier */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Expiration Date
-              </label>
-              <input
-                type="date"
-                value={expirationDate}
-                onChange={(e) => setExpirationDate(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Supplier</label>
-              <input
-                type="text"
-                value={supplier}
-                onChange={(e) => setSupplier(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="e.g., Beauty Supply Co"
-              />
-            </div>
+        {/* Expiration Date & Supplier */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Expiration Date</label>
+            <input
+              type="date"
+              value={expirationDate}
+              onChange={(e) => setExpirationDate(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+            />
           </div>
 
-          {/* Is Active Toggle */}
-          {!isEditing && (
-            <div className="flex items-center">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Supplier</label>
+            <input
+              type="text"
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+              placeholder="e.g., Beauty Supply Co"
+            />
+          </div>
+        </div>
+
+        {/* Is Active Toggle */}
+        {!isEditing && (
+          <div className="pt-1">
+            <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
               <input
                 type="checkbox"
                 id="isActive"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="rounded border-gray-300"
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
               />
-              <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
+              <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
                 Product is active
               </label>
             </div>
-          )}
-
-          {/* Buttons */}
-          <div className="flex gap-2 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 rounded-lg bg-blue-600 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? "Saving..." : isEditing ? "Update" : "Create"}
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 rounded-lg border border-gray-300 py-2 text-gray-700 font-medium hover:bg-gray-50"
-            >
-              Cancel
-            </button>
           </div>
-        </form>
-      </div>
+        )}
+
+        {/* Buttons */}
+        <div className="flex gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+          >
+            {loading ? "Saving..." : isEditing ? "Update" : "Create"}
+          </button>
+
+          <button
+            type="button"
+            onClick={onCancel}
+            className="w-full flex-1 rounded-lg border border-gray-300 bg-transparent px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
