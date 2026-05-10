@@ -49,7 +49,7 @@ export default function InventoryAdjustmentsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Log Adjustment</h1>
             <p className="mt-1 text-gray-600">Record stock movement for a product</p>
           </div>
-          <Link href="/inventory" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/inventory" className="inline-block rounded-md border border-[#6B7A3E] px-4 py-2 text-sm font-medium text-[#6B7A3E] hover:bg-[#6B7A3E] hover:text-white transition-colors">
             ← Back to Inventory
           </Link>
         </div>
