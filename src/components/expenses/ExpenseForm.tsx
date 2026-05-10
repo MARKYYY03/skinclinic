@@ -11,7 +11,7 @@ interface ExpenseFormProps {
 
 export default function ExpenseForm({
   onSubmit,
-}: ExpenseFormProps): JSX.Element {
+}: ExpenseFormProps) {
   const router = useRouter()
   const [category, setCategory] = useState<(typeof EXPENSE_CATEGORIES)[number]>("Operations")
   const [description, setDescription] = useState("")
