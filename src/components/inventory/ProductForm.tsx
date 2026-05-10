@@ -251,7 +251,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+            className="w-full flex-1 rounded-lg bg-[#6B7A3E] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5a6e35] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#6B7A3E] focus:ring-offset-2 focus:ring-offset-white"
           >
             {loading ? "Saving..." : isEditing ? "Update" : "Create"}
           </button>

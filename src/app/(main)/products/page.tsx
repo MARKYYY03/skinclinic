@@ -76,7 +76,7 @@ export default function ProductsPage() {
                 setModalMode("create")
                 setIsModalOpen(true)
               }}
-              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="rounded bg-[#6B7A3E] px-4 py-2 text-white hover:bg-[#5a6e35]"
             >
               Add Product
             </button>
