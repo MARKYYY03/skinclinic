@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { INVENTORY_ADJUSTMENT_TYPES } from "@/lib/constants"
 import { logInventoryAdjustment } from "@/lib/api/inventory-client"
 import { useCurrentUser } from "@/lib/auth/current-user"
 import type { Product } from "@/types/product"
@@ -141,11 +140,20 @@ export default function AdjustmentForm({
         <select
           value={productId}
           onChange={(e) => setProductId(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
         >
-          <option value="">-- Choose a product --</option>
+          <option
+            value=""
+            className="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+          >
+            -- Choose a product --
+          </option>
           {products.map((product) => (
-            <option key={product.id} value={product.id}>
+            <option
+              key={product.id}
+              value={product.id}
+              className="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+            >
               {product.name} ({product.sku ?? "No SKU"}) · Stock: {product.stockQuantity}
             </option>
           ))}
