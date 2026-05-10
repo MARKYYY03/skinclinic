@@ -38,7 +38,7 @@ export default function ClientsPage() {
   }
 
   useEffect(() => {
-    fetchClients()
+    void fetchClients()
   }, [])
 
   const modalTitle = useMemo(() => "+ Add Client", [])
