@@ -9,7 +9,9 @@ interface ExpenseFormProps {
   onSubmit?: (expense: Expense) => void
 }
 
-export default function ExpenseForm({ onSubmit }: ExpenseFormProps) {
+export default function ExpenseForm({
+  onSubmit,
+}: ExpenseFormProps): JSX.Element {
   const router = useRouter()
   const [category, setCategory] = useState<(typeof EXPENSE_CATEGORIES)[number]>("Operations")
   const [description, setDescription] = useState("")
@@ -24,16 +26,19 @@ export default function ExpenseForm({ onSubmit }: ExpenseFormProps) {
       return
     }
 
-    onSubmit?.({
+    const expensePayload: Expense = {
       id: `exp-${Date.now()}`,
       category,
       description: description.trim(),
       amount,
       date,
       recordedBy: "Admin User",
-    })
+    }
 
-    router.push("/expenses")
+    onSubmit?.(expensePayload)
+
+    // If parent provided onSubmit (modal case), it is responsible for closing + refresh.
+    if (!onSubmit) router.push("/expenses")
   }
 
   return (
@@ -47,12 +52,12 @@ export default function ExpenseForm({ onSubmit }: ExpenseFormProps) {
           onChange={(event) =>
             setCategory(event.target.value as (typeof EXPENSE_CATEGORIES)[number])
           }
-          className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           aria-label="Select expense category"
           title="Expense category selector"
         >
           {EXPENSE_CATEGORIES.map((item) => (
-            <option key={item} value={item}>
+            <option key={item} value={item} className="bg-white text-gray-900">
               {item}
             </option>
           ))}
@@ -64,7 +69,7 @@ export default function ExpenseForm({ onSubmit }: ExpenseFormProps) {
         <input
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           placeholder="Clinic utilities"
         />
       </label>
