@@ -163,3 +163,16 @@
     box-shadow: none !important;
   }
 }
+
+/* Force light mode for filter inputs to ensure visibility in production */
+.force-light-input {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  color-scheme: light !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+.force-light-input option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}

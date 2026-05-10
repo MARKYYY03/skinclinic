@@ -149,14 +149,13 @@ export default function CommissionsReportPage() {
         <select
           value={staffFilter}
           onChange={(event) => setStaffFilter(event.target.value)}
-          className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900"
-          style={{ backgroundColor: '#ffffff', color: '#000000', colorScheme: 'light' }}
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 force-light-input"
           aria-label="Filter report by staff"
           title="Staff filter"
         >
-          <option value="All" style={{ backgroundColor: '#ffffff', color: '#000000' }}>All Staff</option>
+          <option value="All">All Staff</option>
           {staffOptions.map((staff) => (
-            <option key={staff} value={staff} style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+            <option key={staff} value={staff}>
               {staff}
             </option>
           ))}
