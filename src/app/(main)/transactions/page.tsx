@@ -173,70 +173,58 @@ export default function TransactionsPage() {
           </Link>
         </div>
 
-        <div className="rounded-xl border border-[#dfd8cf] bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-[#314031] dark:text-gray-200">From</span>
+              <span className="mb-1 block font-medium text-gray-700">From</span>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-400"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 aria-label="Date from"
               />
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-[#314031] dark:text-gray-200">To</span>
+              <span className="mb-1 block font-medium text-gray-700">To</span>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-400"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 aria-label="Date to"
               />
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-[#314031] dark:text-gray-200">Status</span>
+              <span className="mb-1 block font-medium text-gray-700">Status</span>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 aria-label="Status filter"
               >
-                <option
-                  value="All"
-                  className="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                >
+                <option value="All" className="bg-white text-gray-900">
                   All
                 </option>
-                <option
-                  value="Completed"
-                  className="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                >
+                <option value="Completed" className="bg-white text-gray-900">
                   Completed
                 </option>
-                <option
-                  value="Partial"
-                  className="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                >
+                <option value="Partial" className="bg-white text-gray-900">
                   Partial
                 </option>
-                <option
-                  value="Voided"
-                  className="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                >
+                <option value="Voided" className="bg-white text-gray-900">
                   Voided
                 </option>
               </select>
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-[#314031] dark:text-gray-200">Client</span>
+              <span className="mb-1 block font-medium text-gray-700">Client</span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search name…"
-                className="w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-400"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 aria-label="Search by client name"
               />
             </label>
