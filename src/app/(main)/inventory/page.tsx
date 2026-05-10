@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import PageWrapper from "@/components/layout/PageWrapper"
-import ProductForm from "@/components/inventory/ProductForm"
 import { getProducts } from "@/lib/actions/inventory"
 import type { Product } from "@/types/product"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -22,12 +21,12 @@ export default function InventoryPage() {
     search: "",
     status: "all",
   })
-  const [showAddModal, setShowAddModal] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     loadProducts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadProducts = async () => {
@@ -42,16 +41,13 @@ export default function InventoryPage() {
     }
   }
 
-  // Get suppliers for filter dropdown
   const suppliers = useMemo(
     () => Array.from(new Set(products.map((p) => p.supplier).filter(Boolean))) as string[],
     [products],
   )
 
-  // Filter products
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      // Search filter
       if (filters.search) {
         const search = filters.search.toLowerCase()
         if (
@@ -62,12 +58,8 @@ export default function InventoryPage() {
         }
       }
 
-      // Supplier filter
-      if (filters.supplier && product.supplier !== filters.supplier) {
-        return false
-      }
+      if (filters.supplier && product.supplier !== filters.supplier) return false
 
-      // Status filter
       if (filters.status !== "all") {
         const today = new Date()
         const expiryDate = product.expirationDate ? new Date(product.expirationDate) : null
@@ -88,20 +80,18 @@ export default function InventoryPage() {
     })
   }, [products, filters])
 
-  // Pagination calculations
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize))
   const currentPage = Math.min(page, totalPages)
+
+  useEffect(() => {
+    setPage(1)
+  }, [filters])
+
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   )
 
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1)
-  }, [filters])
-
-  // Summary stats
   const stats = useMemo(() => {
     const today = new Date()
     return {
@@ -124,19 +114,13 @@ export default function InventoryPage() {
   return (
     <PageWrapper>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
             <p className="mt-1 text-gray-600">Stock levels and product management</p>
           </div>
+
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700"
-            >
-              + Add Product
-            </button>
             <Link
               href="/inventory/adjustments"
               className="rounded-lg bg-gray-600 px-4 py-2 text-white font-medium hover:bg-gray-700"
@@ -146,7 +130,6 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-lg bg-white p-4 shadow">
             <p className="text-sm text-gray-600">Total Products</p>
@@ -166,13 +149,10 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        {/* Search & Filters */}
         <div className="space-y-4 rounded-lg bg-white p-4 shadow">
           <div className="flex flex-col gap-4 md:flex-row md:items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
               <input
                 type="text"
                 placeholder="Search by product name or SKU..."
@@ -181,10 +161,9 @@ export default function InventoryPage() {
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock Status
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
               <select
                 value={filters.status}
                 onChange={(e) =>
@@ -201,11 +180,10 @@ export default function InventoryPage() {
                 <option value="expired">Expired</option>
               </select>
             </div>
+
             {suppliers.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Supplier
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
                 <select
                   value={filters.supplier || ""}
                   onChange={(e) =>
@@ -225,14 +203,18 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        {/* Table */}
         {loading ? (
           <div className="rounded-lg bg-white p-8 text-center shadow">
             <p className="text-gray-600">Loading products...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="rounded-lg bg-white p-8 text-center shadow">
-            <p className="text-gray-600">No products found</p>
+          <div className="rounded-lg bg-white p-10 text-center shadow">
+            <p className="text-gray-600">
+              No products in inventory yet.{" "}
+              <Link href="/products" className="text-blue-600 font-medium hover:underline">
+                Go to the Products page to add products.
+              </Link>
+            </p>
           </div>
         ) : (
           <div className="space-y-0 rounded-lg bg-white shadow overflow-hidden">
@@ -272,100 +254,116 @@ export default function InventoryPage() {
                     </th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-gray-100">
                   {paginatedProducts.map((product) => {
-                  const today = new Date()
-                  const expiryDate = product.expirationDate
-                    ? new Date(product.expirationDate)
-                    : null
-                  const daysToExpiry = expiryDate
-                    ? Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-                    : null
+                    const today = new Date()
+                    const expiryDate = product.expirationDate
+                      ? new Date(product.expirationDate)
+                      : null
+                    const daysToExpiry = expiryDate
+                      ? Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                      : null
 
-                  let statusBadges = []
-                  if (product.stockQuantity <= 0) {
-                    statusBadges.push(
-                      <span key="out" className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 mr-1">
-                        Out of Stock
-                      </span>,
-                    )
-                  } else if (product.stockQuantity <= product.lowStockThreshold) {
-                    statusBadges.push(
-                      <span key="low" className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 mr-1">
-                        Low Stock
-                      </span>,
-                    )
-                  }
+                    const statusBadges: JSX.Element[] = []
 
-                  if (daysToExpiry !== null) {
-                    if (daysToExpiry < 0) {
+                    if (product.stockQuantity <= 0) {
                       statusBadges.push(
-                        <span key="expired" className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">
-                          Expired
+                        <span
+                          key="out"
+                          className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 mr-1"
+                        >
+                          Out of Stock
                         </span>,
                       )
-                    } else if (daysToExpiry <= 30) {
+                    } else if (product.stockQuantity <= product.lowStockThreshold) {
                       statusBadges.push(
-                        <span key="expiring" className="inline-block rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
-                          Expiring Soon
+                        <span
+                          key="low"
+                          className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 mr-1"
+                        >
+                          Low Stock
                         </span>,
                       )
                     }
-                  }
 
-                  if (statusBadges.length === 0) {
-                    statusBadges.push(
-                      <span key="ok" className="inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-                        OK
-                      </span>,
-                    )
-                  }
+                    if (daysToExpiry !== null) {
+                      if (daysToExpiry < 0) {
+                        statusBadges.push(
+                          <span
+                            key="expired"
+                            className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700"
+                          >
+                            Expired
+                          </span>,
+                        )
+                      } else if (daysToExpiry <= 30) {
+                        statusBadges.push(
+                          <span
+                            key="expiring"
+                            className="inline-block rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800"
+                          >
+                            Expiring Soon
+                          </span>,
+                        )
+                      }
+                    }
 
-                  return (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                        {product.name}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{product.sku ?? "—"}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {product.supplier ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-right text-sm text-gray-900">
-                        {formatCurrency(product.costPrice)}
-                      </td>
-                      <td className="px-4 py-3 text-right text-sm text-gray-900">
-                        {formatCurrency(product.sellingPrice)}
-                      </td>
-                      <td
-                        className={`px-4 py-3 text-right text-sm font-bold ${
-                          product.stockQuantity <= product.lowStockThreshold
-                            ? "text-red-600"
-                            : "text-gray-900"
-                        }`}
-                      >
-                        {product.stockQuantity}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {product.lowStockThreshold}
-                      </td>
-                      <td className="px-4 py-3 text-sm">{statusBadges}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {product.expirationDate ? formatDate(product.expirationDate) : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          href={`/inventory/${product.id}`}
-                          className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                    if (statusBadges.length === 0) {
+                      statusBadges.push(
+                        <span
+                          key="ok"
+                          className="inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700"
                         >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                          OK
+                        </span>,
+                      )
+                    }
+
+                    return (
+                      <tr key={product.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          {product.name}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">{product.sku ?? "—"}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {product.supplier ?? "—"}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm text-gray-900">
+                          {formatCurrency(product.costPrice)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm text-gray-900">
+                          {formatCurrency(product.sellingPrice)}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-right text-sm font-bold ${
+                            product.stockQuantity <= product.lowStockThreshold
+                              ? "text-red-600"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {product.stockQuantity}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">{product.lowStockThreshold}</td>
+                        <td className="px-4 py-3 text-sm">{statusBadges}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {product.expirationDate ? formatDate(product.expirationDate) : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/inventory/${product.id}`}
+                            className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                          >
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
+
             <DataPaginator
               currentPage={currentPage}
               totalPages={totalPages}
@@ -380,17 +378,6 @@ export default function InventoryPage() {
           </div>
         )}
       </div>
-
-      {/* Add Product Modal */}
-      {showAddModal && (
-        <ProductForm
-          onSuccess={() => {
-            setShowAddModal(false)
-            loadProducts()
-          }}
-          onCancel={() => setShowAddModal(false)}
-        />
-      )}
     </PageWrapper>
   )
 }
