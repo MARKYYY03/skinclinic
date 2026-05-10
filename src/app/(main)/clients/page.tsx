@@ -63,7 +63,7 @@ export default function ClientsPage() {
           ) : null}
         </div>
 
-        {/* Render list without navigation link */}
+        {/* Render list without navigation link / extra header */}
         <ClientsListShell clients={clients} showAdd={false} />
 
         {/* Modal (match Products page inline modal pattern) */}

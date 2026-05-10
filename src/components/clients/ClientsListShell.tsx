@@ -20,21 +20,7 @@ export default function ClientsListShell({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-[#1f2918]">Clients</h2>
-          <p className="mt-1 text-sm text-[#5c564c]">Manage client profiles</p>
-        </div>
-        {showAdd ? (
-          <Link
-            href="/clients/new"
-            className="inline-flex items-center justify-center rounded-lg bg-[#6B7A3E] px-4 py-2 text-sm font-semibold text-[#F5F0E8] hover:bg-[#5a6734]"
-          >
-            Add New Client
-          </Link>
-        ) : null}
-      </div>
-
+      {/* Header is intentionally omitted because pages like /clients provide their own title + CTA */}
       <div className="rounded-xl border border-[#dfd8cf] bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row">
           <input
