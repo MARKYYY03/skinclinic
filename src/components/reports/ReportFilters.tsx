@@ -23,7 +23,7 @@ export default function ReportFilters({
             value={startDate}
             onChange={(event) => onStartDateChange(event.target.value)}
             className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            style={{ backgroundColor: 'white', color: '#111827' }}
+            style={{ backgroundColor: '#ffffff', color: '#000000', colorScheme: 'light' }}
             aria-label="Start date"
             title="Report start date"
           />
@@ -35,7 +35,7 @@ export default function ReportFilters({
             value={endDate}
             onChange={(event) => onEndDateChange(event.target.value)}
             className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            style={{ backgroundColor: 'white', color: '#111827' }}
+            style={{ backgroundColor: '#ffffff', color: '#000000', colorScheme: 'light' }}
             aria-label="End date"
             title="Report end date"
           />
