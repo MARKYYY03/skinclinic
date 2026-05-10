@@ -90,27 +90,40 @@ export default function ExpensesPage() {
           <select
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value)}
-            className="rounded border border-gray-300 px-3 py-2"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             aria-label="Filter expenses by category"
             title="Category filter"
           >
-            <option value="All">All Categories</option>
+            <option value="All" className="bg-white text-gray-900">
+              All Categories
+            </option>
             {EXPENSE_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
+              <option
+                key={category}
+                value={category}
+                className="bg-white text-gray-900"
+              >
                 {category}
               </option>
             ))}
           </select>
+
           <select
             value={monthFilter}
             onChange={(event) => setMonthFilter(event.target.value)}
-            className="rounded border border-gray-300 px-3 py-2"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             aria-label="Filter expenses by month"
             title="Month filter"
           >
-            <option value="All">All Months</option>
-            <option value="2026-05">May 2026</option>
-            <option value="2026-04">Apr 2026</option>
+            <option value="All" className="bg-white text-gray-900">
+              All Months
+            </option>
+            <option value="2026-05" className="bg-white text-gray-900">
+              May 2026
+            </option>
+            <option value="2026-04" className="bg-white text-gray-900">
+              Apr 2026
+            </option>
           </select>
         </div>
 
