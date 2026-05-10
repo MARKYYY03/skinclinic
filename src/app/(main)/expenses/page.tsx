@@ -1,18 +1,21 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import PageWrapper from "@/components/layout/PageWrapper"
 import ExpenseTable from "@/components/expenses/ExpenseTable"
 import { EXPENSE_CATEGORIES } from "@/lib/constants"
 import { supabaseClient } from "@/lib/supabase/supabase-client"
 import { Expense } from "@/types/expense"
 import { formatCurrency } from "@/lib/utils"
+import ExpenseForm from "@/components/expenses/ExpenseForm"
 
 export default function ExpensesPage() {
+  const router = useRouter()
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [categoryFilter, setCategoryFilter] = useState("All")
   const [monthFilter, setMonthFilter] = useState("All")
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -74,12 +77,13 @@ export default function ExpensesPage() {
               Track expenses with category filters and monthly totals.
             </p>
           </div>
-          <Link
-            href="/expenses/new"
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          <button
+            type="button"
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center justify-center rounded-lg bg-[#6B7A3E] px-4 py-2 text-sm font-semibold text-[#F5F0E8] hover:bg-[#5a6734]"
           >
             New Expense
-          </Link>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -117,6 +121,41 @@ export default function ExpensesPage() {
 
         <ExpenseTable expenses={filteredExpenses} />
       </div>
+
+      {isAddModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+          <div className="w-full max-w-2xl overflow-y-auto rounded-xl border border-[#dfd8cf] bg-white p-5 shadow-xl">
+            <div className="mb-4 flex items-center justify-between gap-2 border-b border-gray-200 pb-3">
+              <h3 className="text-lg font-semibold text-[#1f2918]">Add Expense</h3>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                aria-label="Close modal"
+                className="text-2xl leading-none text-[#6a6358] hover:text-[#1f2918]"
+              >
+                &times;
+              </button>
+            </div>
+
+            <ExpenseForm
+              onSubmit={() => {
+                setIsAddModalOpen(false)
+                router.refresh()
+              }}
+            />
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="rounded-lg border border-[#cfc6ba] px-6 py-2 text-sm font-medium text-[#314031] hover:bg-[#F5F0E8]"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </PageWrapper>
   )
 }
