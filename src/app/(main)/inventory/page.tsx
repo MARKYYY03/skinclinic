@@ -265,7 +265,7 @@ export default function InventoryPage() {
                       ? Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
                       : null
 
-                    const statusBadges: JSX.Element[] = []
+                    const statusBadges: React.ReactElement[] = []
 
                     if (product.stockQuantity <= 0) {
                       statusBadges.push(
