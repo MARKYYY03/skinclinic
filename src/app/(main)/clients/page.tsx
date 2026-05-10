@@ -95,6 +95,7 @@ export default function ClientsPage() {
                   initialData={undefined}
                   submitLabel="Save client"
                   cancelHref="/clients"
+                  onCancel={() => setIsModalOpen(false)}
                   isLoading={loading}
                   onSubmit={async (data) => {
                     // Create client

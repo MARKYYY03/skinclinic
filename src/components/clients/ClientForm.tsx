@@ -10,6 +10,7 @@ interface ClientFormProps {
   isLoading?: boolean
   submitLabel?: string
   cancelHref?: string
+  onCancel?: () => void
 }
 
 export default function ClientForm({
@@ -18,6 +19,7 @@ export default function ClientForm({
   isLoading = false,
   submitLabel = "Save client",
   cancelHref = "/clients",
+  onCancel,
 }: ClientFormProps) {
   const router = useRouter()
 
@@ -132,7 +134,7 @@ export default function ClientForm({
               id="fullName"
               value={formData.fullName}
               onChange={(e) => handleInputChange("fullName", e.target.value)}
-              className={`mt-1 block w-full rounded-lg border px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.fullName ? "border-red-300" : "border-[#cfc6ba]"}`}
+              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.fullName ? "border-red-300" : "border-[#cfc6ba]"}`}
               placeholder="Client full name"
             />
             {errors.fullName ? (
@@ -154,7 +156,7 @@ export default function ClientForm({
               onChange={(e) =>
                 handleInputChange("contactNumber", e.target.value)
               }
-              className={`mt-1 block w-full rounded-lg border px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.contactNumber ? "border-red-300" : "border-[#cfc6ba]"}`}
+              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.contactNumber ? "border-red-300" : "border-[#cfc6ba]"}`}
               placeholder="09xx or +63..."
             />
             {errors.contactNumber ? (
@@ -174,7 +176,7 @@ export default function ClientForm({
               id="email"
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              className={`mt-1 block w-full rounded-lg border px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.email ? "border-red-300" : "border-[#cfc6ba]"}`}
+              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.email ? "border-red-300" : "border-[#cfc6ba]"}`}
               placeholder="name@example.com"
             />
             {errors.email ? (
@@ -196,7 +198,7 @@ export default function ClientForm({
               onChange={(e) =>
                 handleInputChange("birthdate", e.target.value)
               }
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
 
@@ -211,11 +213,17 @@ export default function ClientForm({
               id="gender"
               value={formData.gender}
               onChange={(e) => handleInputChange("gender", e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             >
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
+              <option value="Female" className="bg-white text-gray-900">
+                Female
+              </option>
+              <option value="Male" className="bg-white text-gray-900">
+                Male
+              </option>
+              <option value="Other" className="bg-white text-gray-900">
+                Other
+              </option>
             </select>
           </div>
 
@@ -232,10 +240,14 @@ export default function ClientForm({
               onChange={(e) =>
                 handleInputChange("category", e.target.value)
               }
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             >
-              <option value="Regular">Regular</option>
-              <option value="VIP">VIP</option>
+              <option value="Regular" className="bg-white text-gray-900">
+                Regular
+              </option>
+              <option value="VIP" className="bg-white text-gray-900">
+                VIP
+              </option>
             </select>
           </div>
         </div>
@@ -252,7 +264,7 @@ export default function ClientForm({
             rows={3}
             value={formData.address}
             onChange={(e) => handleInputChange("address", e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+            className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
           />
         </div>
       </div>
@@ -276,7 +288,7 @@ export default function ClientForm({
               onChange={(e) =>
                 handleInputChange("medicalHistory", e.target.value)
               }
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
 
@@ -292,7 +304,7 @@ export default function ClientForm({
               rows={2}
               value={formData.allergies}
               onChange={(e) => handleInputChange("allergies", e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
 
@@ -308,7 +320,7 @@ export default function ClientForm({
               rows={3}
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] px-3 py-2 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
         </div>
@@ -317,7 +329,10 @@ export default function ClientForm({
       <div className="flex justify-end gap-3 rounded-xl border border-[#dfd8cf] bg-white px-6 py-4 shadow-sm">
         <button
           type="button"
-          onClick={() => router.push(cancelHref)}
+          onClick={() => {
+            if (onCancel) onCancel()
+            else router.push(cancelHref)
+          }}
           className="rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm font-medium text-[#314031] hover:bg-[#F5F0E8]"
         >
           Cancel
