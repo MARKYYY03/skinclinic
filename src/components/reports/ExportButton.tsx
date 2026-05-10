@@ -26,7 +26,7 @@ export default function ExportButton({ filename, headers, rows }: ExportButtonPr
     <button
       type="button"
       onClick={handleExport}
-      className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+      className="rounded bg-[#6B7A3E] px-4 py-2 text-sm text-white hover:bg-[#5a6e35]"
     >
       Export CSV
     </button>
