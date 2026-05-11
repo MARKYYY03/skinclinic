@@ -134,7 +134,7 @@ export default function ClientForm({
               id="fullName"
               value={formData.fullName}
               onChange={(e) => handleInputChange("fullName", e.target.value)}
-              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.fullName ? "border-red-300" : "border-[#cfc6ba]"}`}
+              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-black placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.fullName ? "border-red-300" : "border-[#cfc6ba]"}`}
               placeholder="Client full name"
             />
             {errors.fullName ? (
@@ -156,7 +156,7 @@ export default function ClientForm({
               onChange={(e) =>
                 handleInputChange("contactNumber", e.target.value)
               }
-              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.contactNumber ? "border-red-300" : "border-[#cfc6ba]"}`}
+              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-black placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.contactNumber ? "border-red-300" : "border-[#cfc6ba]"}`}
               placeholder="09xx or +63..."
             />
             {errors.contactNumber ? (
@@ -176,7 +176,7 @@ export default function ClientForm({
               id="email"
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.email ? "border-red-300" : "border-[#cfc6ba]"}`}
+              className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-black placeholder-gray-400 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E] focus:border-[#6B7A3E] ${errors.email ? "border-red-300" : "border-[#cfc6ba]"}`}
               placeholder="name@example.com"
             />
             {errors.email ? (
@@ -213,15 +213,15 @@ export default function ClientForm({
               id="gender"
               value={formData.gender}
               onChange={(e) => handleInputChange("gender", e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-black shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             >
-              <option value="Female" className="bg-white text-gray-900">
+              <option value="Female" className="bg-white text-black">
                 Female
               </option>
-              <option value="Male" className="bg-white text-gray-900">
+              <option value="Male" className="bg-white text-black">
                 Male
               </option>
-              <option value="Other" className="bg-white text-gray-900">
+              <option value="Other" className="bg-white text-black">
                 Other
               </option>
             </select>
@@ -240,7 +240,7 @@ export default function ClientForm({
               onChange={(e) =>
                 handleInputChange("category", e.target.value)
               }
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-black shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             >
               <option value="Regular" className="bg-white text-gray-900">
                 Regular
@@ -264,7 +264,7 @@ export default function ClientForm({
             rows={3}
             value={formData.address}
             onChange={(e) => handleInputChange("address", e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+            className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-black shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
           />
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function ClientForm({
               onChange={(e) =>
                 handleInputChange("medicalHistory", e.target.value)
               }
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-black shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
 
@@ -304,7 +304,7 @@ export default function ClientForm({
               rows={2}
               value={formData.allergies}
               onChange={(e) => handleInputChange("allergies", e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-black shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
 
@@ -320,7 +320,7 @@ export default function ClientForm({
               rows={3}
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-gray-900 shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
+              className="mt-1 block w-full rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-black shadow-sm outline-none focus:ring-1 focus:ring-[#6B7A3E]"
             />
           </div>
         </div>

@@ -50,7 +50,7 @@ export default function PackageForm({ mode, initialData, onSubmit }: PackageForm
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
           placeholder="Hydra Facial 5 Sessions"
         />
       </label>
@@ -60,7 +60,7 @@ export default function PackageForm({ mode, initialData, onSubmit }: PackageForm
         <input
           value={serviceId}
           onChange={(event) => setServiceId(event.target.value)}
-          className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
           placeholder="s-001"
         />
       </label>
@@ -73,7 +73,7 @@ export default function PackageForm({ mode, initialData, onSubmit }: PackageForm
             min={1}
             value={sessionCount}
             onChange={(event) => setSessionCount(Number(event.target.value))}
-            className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </label>
 
@@ -84,9 +84,9 @@ export default function PackageForm({ mode, initialData, onSubmit }: PackageForm
             min={1}
             value={price}
             onChange={(event) => setPrice(Number(event.target.value))}
-            className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
-        </label>
+            className="w-full rounded border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </label>
 
         <label className="block text-sm">
           <span className="mb-1 block text-gray-700">Validity Days</span>
@@ -95,7 +95,7 @@ export default function PackageForm({ mode, initialData, onSubmit }: PackageForm
             min={1}
             value={validityDays}
             onChange={(event) => setValidityDays(Number(event.target.value))}
-            className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </label>
       </div>

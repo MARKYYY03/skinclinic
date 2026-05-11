@@ -87,7 +87,7 @@ export default function ServiceForm({
               })
             }
             rows={3}
-            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm text-black"
           />
         </label>
 
@@ -101,7 +101,7 @@ export default function ServiceForm({
                 category: e.target.value.trim() ? e.target.value : null,
               })
             }
-            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm text-black"
           />
         </label>
 
@@ -117,7 +117,7 @@ export default function ServiceForm({
             onChange={(e) =>
               setDraft({ ...draft, price: Number(e.target.value) || 0 })
             }
-            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm text-black"
             required
           />
         </label>
@@ -137,7 +137,7 @@ export default function ServiceForm({
                 commission_rate: Number(e.target.value) || 0,
               })
             }
-            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-sm text-black"
           />
         </label>
 

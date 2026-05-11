@@ -155,7 +155,7 @@ export default function ServicesSettingsPage() {
             onChange={(e) => setPrice(e.target.value)}
             placeholder="Price"
             inputMode="decimal"
-            className="rounded border border-gray-300 px-3 py-2 text-sm"
+            className="rounded border border-gray-300 px-3 py-2 text-sm text-black"
             disabled={!canManage}
           />
           <input
@@ -163,7 +163,7 @@ export default function ServicesSettingsPage() {
             onChange={(e) => setCommissionRate(e.target.value)}
             placeholder="Commission % (optional)"
             inputMode="decimal"
-            className="rounded border border-gray-300 px-3 py-2 text-sm"
+            className="rounded border border-gray-300 px-3 py-2 text-sm text-black"
             disabled={!canManage}
           />
         </div>
@@ -171,7 +171,7 @@ export default function ServicesSettingsPage() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description (optional)"
-          className="min-h-[80px] w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          className="min-h-[80px] w-full rounded border border-gray-300 px-3 py-2 text-sm text-black"
           disabled={!canManage}
         />
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

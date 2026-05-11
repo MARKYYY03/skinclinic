@@ -181,7 +181,7 @@ export default function TransactionsPage() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-gray-900"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-black"
                 aria-label="Date from"
               />
             </label>
@@ -191,7 +191,7 @@ export default function TransactionsPage() {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-gray-900"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-black"
                 aria-label="Date to"
               />
             </label>
@@ -200,27 +200,27 @@ export default function TransactionsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-gray-900"
+                className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-black"
                 aria-label="Status filter"
               >
-                <option value="All" className="bg-white text-gray-900 dark:bg-white dark:text-gray-900">
+                <option value="All" className="bg-white text-black dark:bg-white dark:text-black">
                   All
                 </option>
                 <option
                   value="Completed"
-                  className="bg-white text-gray-900 dark:bg-white dark:text-gray-900"
+                  className="bg-white text-black dark:bg-white dark:text-black"
                 >
                   Completed
                 </option>
                 <option
                   value="Partial"
-                  className="bg-white text-gray-900 dark:bg-white dark:text-gray-900"
+                  className="bg-white text-black dark:bg-white dark:text-black"
                 >
                   Partial
                 </option>
                 <option
                   value="Voided"
-                  className="bg-white text-gray-900 dark:bg-white dark:text-gray-900"
+                  className="bg-white text-black dark:bg-white dark:text-black"
                 >
                   Voided
                 </option>
@@ -233,7 +233,7 @@ export default function TransactionsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search name…"
-                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-gray-900"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-white dark:text-black"
                 aria-label="Search by client name"
               />
             </label>

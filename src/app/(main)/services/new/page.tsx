@@ -94,7 +94,7 @@ export default function NewServicePage() {
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
-                className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2"
+                className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-black"
               >
                 <option value="Facial">Facial</option>
                 <option value="Peel">Peel</option>
@@ -113,7 +113,7 @@ export default function NewServicePage() {
                 step={0.01}
                 value={price}
                 onChange={(event) => setPrice(Number(event.target.value))}
-                className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2"
+                className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-black"
                 required
               />
             </label>
@@ -127,7 +127,7 @@ export default function NewServicePage() {
                 step={0.01}
                 value={commissionRate}
                 onChange={(event) => setCommissionRate(Number(event.target.value))}
-                className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2"
+                className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-black"
               />
             </label>
           </div>
@@ -137,7 +137,7 @@ export default function NewServicePage() {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={4}
-              className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2"
+              className="w-full rounded-lg border border-[#cfc6ba] px-3 py-2 text-black"
               placeholder="Treatment scope, preparation, aftercare…"
             />
           </label>
