@@ -126,6 +126,25 @@
   html {
     @apply font-sans;
     }
+  
+  /* Force black text on all input elements */
+  input,
+  textarea,
+  select {
+    color: #000000 !important;
+  }
+  
+  /* Handle webkit autofill states */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #000000 !important;
+  }
+  
+  /* Ensure option elements in selects have black text */
+  option {
+    color: #000000 !important;
+  }
 }
 
 /* Print styles */
