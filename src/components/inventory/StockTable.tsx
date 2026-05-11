@@ -38,70 +38,81 @@ export default function StockTable({
     <div className="space-y-0 rounded-lg bg-white shadow overflow-hidden">
       <div className="overflow-x-auto rounded-b-none">
         <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Product
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              SKU
-            </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Stock
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Stock Status
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Expiry Status
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Last Movement
-            </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Action
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 bg-white">
-          {paginatedProducts.map((product) => {
-            const latestMovement = getLatestMovement(product.id)
-            const isSelected = selectedProductId === product.id
-            return (
-              <tr key={product.id} className={isSelected ? "bg-blue-50" : "hover:bg-gray-50"}>
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{product.sku ?? "N/A"}</td>
-                <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                  {product.stockQuantity}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  <LowStockBadge
-                    stockQuantity={product.stockQuantity}
-                    lowStockThreshold={product.lowStockThreshold}
-                  />
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  <ExpiryBadge expirationDate={product.expirationDate} />
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {latestMovement
-                    ? `${latestMovement.type} (${latestMovement.quantity})`
-                    : "No movement yet"}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    onClick={() => onSelectProduct(product.id)}
-                    className="rounded border border-blue-600 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
-                  >
-                    View Log
-                  </button>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>      </div>
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                Product
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                SKU
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                Stock
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                Stock Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                Expiry Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                Last Movement
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white">
+            {paginatedProducts.map((product) => {
+              const latestMovement = getLatestMovement(product.id)
+              const isSelected = selectedProductId === product.id
+              return (
+                <tr
+                  key={product.id}
+                  className={
+                    isSelected ? "bg-blue-50" : "hover:bg-gray-50"
+                  }
+                >
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                    {product.name}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {product.sku ?? "N/A"}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                    {product.stockQuantity}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <LowStockBadge
+                      stockQuantity={product.stockQuantity}
+                      lowStockThreshold={product.lowStockThreshold}
+                    />
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <ExpiryBadge expirationDate={product.expirationDate} />
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {latestMovement
+                      ? `${latestMovement.type} (${latestMovement.quantity})`
+                      : "No movement yet"}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => onSelectProduct(product.id)}
+                      className="font-medium text-[#6B7A3E] hover:text-[#5a6734]"
+                    >
+                      View Log
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
       <DataPaginator
         currentPage={currentPage}
         totalPages={totalPages}
@@ -112,6 +123,7 @@ export default function StockTable({
           setPageSize(size)
           setPage(1)
         }}
-      />    </div>
+      />
+    </div>
   )
 }
