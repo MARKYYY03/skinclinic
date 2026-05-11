@@ -90,7 +90,7 @@ export default function ExpensesPage() {
           <select
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             aria-label="Filter expenses by category"
             title="Category filter"
           >
@@ -111,7 +111,7 @@ export default function ExpensesPage() {
           <select
             value={monthFilter}
             onChange={(event) => setMonthFilter(event.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             aria-label="Filter expenses by month"
             title="Month filter"
           >

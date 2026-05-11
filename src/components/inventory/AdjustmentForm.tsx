@@ -140,7 +140,7 @@ export default function AdjustmentForm({
         <select
           value={productId}
           onChange={(e) => setProductId(e.target.value)}
-          className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         >
           <option
             value=""
@@ -199,7 +199,7 @@ export default function AdjustmentForm({
           min="1"
           value={quantity}
           onChange={(e) => setQuantity(Number(e.target.value))}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
         {selectedProduct && (
           <div className="mt-2 rounded-lg bg-gray-50 p-3 text-sm border border-gray-200">
@@ -223,7 +223,7 @@ export default function AdjustmentForm({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder={ADJUSTMENT_PLACEHOLDERS[type]}
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           rows={3}
         />
       </div>

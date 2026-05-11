@@ -159,7 +159,7 @@ export default function UserForm({ onCreateUser }: UserFormProps) {
                   value={firstName}
                   onChange={(event) => setFirstName(event.target.value)}
                   placeholder="John"
-                  className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-black placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all"
+                  className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-[#1f2918] placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all"
                 />
               </div>
               <div>
@@ -168,7 +168,7 @@ export default function UserForm({ onCreateUser }: UserFormProps) {
                   value={lastName}
                   onChange={(event) => setLastName(event.target.value)}
                   placeholder="Doe"
-                  className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-black placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all"
+                  className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-[#1f2918] placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all"
                 />
               </div>
               <div className="md:col-span-2">
@@ -178,7 +178,7 @@ export default function UserForm({ onCreateUser }: UserFormProps) {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="john@example.com"
-                  className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-black placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all"
+                  className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-[#1f2918] placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all"
                 />
               </div>
               <div>
@@ -189,7 +189,7 @@ export default function UserForm({ onCreateUser }: UserFormProps) {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter a strong password"
-                    className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-black placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all pr-10"
+                    className="w-full rounded-lg border border-[#cfc6ba] px-4 py-2 text-sm text-[#1f2918] placeholder-[#a89f96] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all pr-10"
                   />
                   <button
                     type="button"
@@ -206,7 +206,7 @@ export default function UserForm({ onCreateUser }: UserFormProps) {
                 <select
                   value={role}
                   onChange={(event) => setRole(event.target.value as UserRole)}
-                  className={`w-full rounded-lg border px-4 py-2 text-sm text-black focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all ${getRoleColor(role)}`}
+                  className={`w-full rounded-lg border px-4 py-2 text-sm text-[#1f2918] focus:ring-2 focus:ring-[#6B7A3E] focus:border-transparent outline-none transition-all ${getRoleColor(role)}`}
                   aria-label="Select user role"
                   title="User role selector"
                 >

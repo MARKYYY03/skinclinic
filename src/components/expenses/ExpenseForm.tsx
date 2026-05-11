@@ -52,12 +52,12 @@ export default function ExpenseForm({
           onChange={(event) =>
             setCategory(event.target.value as (typeof EXPENSE_CATEGORIES)[number])
           }
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           aria-label="Select expense category"
           title="Expense category selector"
         >
           {EXPENSE_CATEGORIES.map((item) => (
-            <option key={item} value={item} className="bg-white text-black">
+            <option key={item} value={item} className="bg-white text-gray-900">
               {item}
             </option>
           ))}
@@ -69,7 +69,7 @@ export default function ExpenseForm({
         <input
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           placeholder="Clinic utilities"
         />
       </label>
@@ -82,7 +82,7 @@ export default function ExpenseForm({
             min={1}
             value={amount}
             onChange={(event) => setAmount(Number(event.target.value))}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </label>
         <label className="block text-sm">
@@ -91,7 +91,7 @@ export default function ExpenseForm({
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </label>
       </div>

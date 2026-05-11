@@ -29,14 +29,14 @@ export default function ClientsListShell({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search clients"
-            className="flex-1 rounded-lg border border-[#cfc6ba] bg-[#F5F0E8]/40 px-3 py-2 text-black outline-none focus:border-[#6B7A3E] focus:ring-1 focus:ring-[#6B7A3E]"
+            className="flex-1 rounded-lg border border-[#cfc6ba] bg-[#F5F0E8]/40 px-3 py-2 text-[#1f2918] outline-none focus:border-[#6B7A3E] focus:ring-1 focus:ring-[#6B7A3E]"
           />
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             aria-label="Filter clients by category"
             title="Client category filter"
-            className="rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-black outline-none focus:border-[#6B7A3E] focus:ring-1 focus:ring-[#6B7A3E]"
+            className="rounded-lg border border-[#cfc6ba] bg-white px-3 py-2 text-[#1f2918] outline-none focus:border-[#6B7A3E] focus:ring-1 focus:ring-[#6B7A3E]"
           >
             <option value="All">All categories</option>
             <option value="Regular">Regular</option>

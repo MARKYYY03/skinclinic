@@ -51,7 +51,7 @@ export default function DataPaginator({
             id="pageSize"
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="rounded-lg border border-[#cfc6ba] bg-white px-3 py-1.5 text-sm text-black hover:border-[#b7b0a4]"
+            className="rounded-lg border border-[#cfc6ba] bg-white px-3 py-1.5 text-sm text-[#314031] hover:border-[#b7b0a4]"
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
