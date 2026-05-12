@@ -125,12 +125,12 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                       {t.status}
                     </span>
                   </td>
-                  <td className="max-w-[12rem] truncate px-4 py-3 text-sm text-[#314031]">
+                  <td className="max-w-[12rem] truncate px-4 py-3 text-sm text-[#6a6358]">
                     {t.payments.length
-                      ? Array.from(new Set(t.payments.map((p) => p.method))).join(", ")
+                      ? Array.from(new Set(t.payments.map((p) => p.method))).length
                       : t.amountPaid > 0
-                        ? "Recorded (no split rows)"
-                        : "—"}
+                        ? "—"
+                        : "0"}
                   </td>
                   <td className="max-w-[10rem] truncate px-4 py-3 text-sm text-[#6a6358]">
                     {t.createdBy}

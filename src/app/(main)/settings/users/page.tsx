@@ -123,7 +123,7 @@ export default function UsersPage() {
         </p>
       </div>
 
-      {canManage ? <UserForm onCreateUser={handleCreateUser} /> : null}
+      {canManage ? <UserForm currentUserRole={currentUserRole} onCreateUser={handleCreateUser} /> : null}
 
       {loading ? (
         <div className="rounded-xl border border-[#dfd8cf] bg-white p-4 shadow-sm">
@@ -152,6 +152,7 @@ export default function UsersPage() {
       <UserEditModal
         user={editUser}
         open={editOpen}
+        currentUserRole={currentUserRole}
         onClose={() => {
           setEditOpen(false)
           setEditUser(null)

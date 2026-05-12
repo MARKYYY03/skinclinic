@@ -68,6 +68,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 })
     }
 
+    // Validate role creation restrictions
+    if (callerProfile.role === "Admin") {
+      if (role !== "Staff" && role !== "Cashier") {
+        return NextResponse.json(
+          { error: "Admins can only create Staff or Cashier roles." },
+          { status: 403 },
+        )
+      }
+    }
+    // Owner can create all roles - no additional validation needed
+
     // Create/add user using service role (server-only)
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },

@@ -5,6 +5,7 @@ import { UserRole } from "@/types/user"
 import { Plus, X, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
 
 interface UserFormProps {
+  currentUserRole: UserRole
   onCreateUser: (params: {
     firstName: string
     lastName: string
@@ -14,7 +15,13 @@ interface UserFormProps {
   }) => Promise<void>
 }
 
-const roleOptions: UserRole[] = ["Owner", "Admin", "Cashier", "Staff"]
+function getAvailableRoles(currentRole: UserRole): UserRole[] {
+  if (currentRole === "Owner") {
+    return ["Owner", "Admin", "Cashier", "Staff"]
+  }
+  // Admin can only create Staff or Cashier
+  return ["Cashier", "Staff"]
+}
 
 function getRoleColor(role: UserRole): string {
   switch (role) {
@@ -31,12 +38,13 @@ function getRoleColor(role: UserRole): string {
   }
 }
 
-export default function UserForm({ onCreateUser }: UserFormProps) {
+export default function UserForm({ currentUserRole, onCreateUser }: UserFormProps) {
   const [open, setOpen] = useState(false)
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
-  const [role, setRole] = useState<UserRole>("Staff")
+  const availableRoles = getAvailableRoles(currentUserRole)
+  const [role, setRole] = useState<UserRole>(availableRoles[availableRoles.length - 1])
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
@@ -210,12 +218,15 @@ export default function UserForm({ onCreateUser }: UserFormProps) {
                   aria-label="Select user role"
                   title="User role selector"
                 >
-                  {roleOptions.map((roleOption) => (
+                  {availableRoles.map((roleOption) => (
                     <option key={roleOption} value={roleOption}>
                       {roleOption}
                     </option>
                   ))}
                 </select>
+                {currentUserRole === "Admin" && (
+                  <p className="text-xs text-[#6a6358] mt-1">Admins can only create Staff and Cashier roles</p>
+                )}
               </div>
             </div>
 
