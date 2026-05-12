@@ -39,7 +39,7 @@ export default function LowStockAlert({ products }: LowStockAlertProps) {
       </div>
       <Link
         href="/inventory?filter=low-stock"
-        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+        className="text-sm font-medium text-[#6B7A3E] hover:text-[#5a6734]"
       >
         View All →
       </Link>

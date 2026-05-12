@@ -69,7 +69,7 @@ export default function ExpenseTable({ expenses }: ExpenseTableProps) {
                 <td className="px-4 py-3 text-right">
                   <button
                     type="button"
-                    className="rounded-lg border border-[#dfd8cf] px-3 py-1 text-xs font-medium text-[#314031] hover:bg-[#F5F0E8]"
+                    className="font-medium text-[#6B7A3E] hover:text-[#5a6734]"
                     onClick={() => setViewExpense(expense)}
                   >
                     View

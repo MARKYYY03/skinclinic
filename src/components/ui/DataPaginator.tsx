@@ -21,10 +21,6 @@ export default function DataPaginator({
   pageSizeOptions = [10, 25, 50],
   showSummary = true,
 }: DataPaginatorProps) {
-  if (totalPages <= 1) {
-    return null
-  }
-
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1
   const endItem = Math.min(currentPage * pageSize, totalItems)
 

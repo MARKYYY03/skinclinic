@@ -352,7 +352,7 @@ export default function InventoryPage() {
                         <td className="px-4 py-3 text-right">
                           <Link
                             href={`/inventory/${product.id}`}
-                            className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                            className="font-medium text-[#6B7A3E] hover:text-[#5a6734]"
                           >
                             View
                           </Link>
